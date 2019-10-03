@@ -1,4 +1,4 @@
-#include "optimalization_functions_viz.h"
+#include "optimalization_functions_vis.h"
 
 using namespace azgra;
 using namespace azgra::geometry;
@@ -19,5 +19,8 @@ void visualize_function(const f64 xMin, const f64 xMax, const f64 xStep, const f
         surfacePoints.push_back(line);
     }
 
-    Plot(plotFileName).add_surface_plot(surfacePoints).save(plotFileName);
+    print_colorized(ConsoleColor::ConsoleColor_Green, "Finished generation of %s\n", plotFileName.data());
+    //Plot(plotFileName).add_surface_plot(surfacePoints).save(plotFileName);
+    Plot(plotFileName).add_surface_plot(surfacePoints).display_window();
+    print_colorized(ConsoleColor::ConsoleColor_Green, "Finished saving of %s\n", plotFileName.data());
 }

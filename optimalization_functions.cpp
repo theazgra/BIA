@@ -1,8 +1,7 @@
 #include "optimalization_functions.h"
 
 /// https://www.sfu.ca/~ssurjano/ackley.html
-f64 ackley(const f64 a, const f64 b, const f64 c,
-           const std::vector<f64> &x)
+f64 ackley(const std::vector<f64> &x, const f64 a, const f64 b, const f64 c)
 {
     const size_t dims = x.size();
     f64 sum1 = 0.0;
@@ -26,7 +25,7 @@ f64 griewank(const std::vector<f64> &x)
     for (size_t i = 0; i < dims; ++i)
     {
         sum += (pow(x[i], 2) / (f64) 4000.0);
-        product *= cos(x[i] / sqrt(i));
+        product *= cos(x[i] / sqrt(i + 1));
     }
     f64 result = sum - product + 1;
     return result;
@@ -90,9 +89,9 @@ f64 michalewicz(const std::vector<f64> &x, const f64 m)
     f64 sum = 0.0;
     for (size_t i = 0; i < dims; ++i)
     {
-        sum += (sin(x[i]) * pow((sin(((static_cast<f64>(i) * pow(x[i], 2)) / M_PI))), (2.0 * m)));
+        sum += sin(x[i]) * pow(sin((static_cast<f64>(i + 1) * pow(x[i], 2)) / M_PI), 2.0 * m);
     }
-    f64 result = -sum;
+    f64 result = -1.0 * sum;
     return result;
 }
 
@@ -105,12 +104,13 @@ f64 zakharov(const std::vector<f64> &x)
     for (size_t i = 0; i < dims; ++i)
     {
         sum1 += pow(x[i], 2);
-        sum2 += 0.5 * static_cast<f64>(i) * x[i];
+        sum2 += 0.5 * static_cast<f64>(i+1) * x[i];
     }
     f64 result = sum1 + pow(sum2, 2) + pow(sum2, 4);
     return result;
 }
 
+/// https://www.sfu.ca/~ssurjano/powersum.html
 f64 power_sum(const std::vector<f64> &x, const std::vector<f64> &b)
 {
     const size_t dims = x.size();
@@ -147,7 +147,7 @@ f64 dixon_price(const std::vector<f64> &x)
     f64 sum = 0.0;
     for (size_t i = 1; i < dims; ++i)
     {
-        sum += (static_cast<f64>(i) * pow(((2.0 * pow(x[i], 2)) - x[i - 1]), 2));
+        sum += (static_cast<f64>(i+1) * pow(((2.0 * pow(x[i], 2)) - x[i]), 2));
     }
     f64 result = pow((x[0] - 1.0), 2) + sum;
     return result;
