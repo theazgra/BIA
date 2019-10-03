@@ -1,10 +1,10 @@
 #pragma once
 
+#include <azgra/azgra.h>
 #include <cmath>
 #include <vector>
 
-typedef double f64;
-
+using namespace azgra;
 
 /// https://www.sfu.ca/~ssurjano/ackley.html
 f64 ackley(const std::vector<f64> &x, const f64 a = 20.0, const f64 b = 0.2, const f64 c = (2 * M_PI_2));

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(AzgraCppLibrary)
 
-add_executable(bia main.cpp optimalization_functions.cpp optimalization_functions_vis.cpp)
+add_executable(bia main.cpp optimalization_functions.cpp optimalization_functions_vis.cpp search_algorithms.cpp)
 
 target_link_libraries(bia sub::azgra)
 set_property(TARGET bia PROPERTY CXX_STANDARD 17)

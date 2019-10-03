@@ -1,4 +1,5 @@
 #include "optimalization_functions.h"
+using namespace azgra;
 
 /// https://www.sfu.ca/~ssurjano/ackley.html
 f64 ackley(const std::vector<f64> &x, const f64 a, const f64 b, const f64 c)
