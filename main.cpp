@@ -19,21 +19,34 @@ int main()
 
     const size_t iterationCount = 10000;
     const char *FnName = "Ackley Function";
-//    auto result = search_algorithms::blind_search_2d_with_history(ackley_simple, iterationCount, {
-//            search_algorithms::Limits(-33, 33),
-//            search_algorithms::Limits(-33, 33)});
 
-    auto result = search_algorithms::hill_climbing_2d_with_history(ackley_simple, iterationCount, {
-                                                                           search_algorithms::Limits(-33, 33),
-                                                                           search_algorithms::Limits(-33, 33)},
-                                                                   100,
-                                                                   0.9);
+    optimalization::OptimalizationProblem ackleyProblem(ackley_simple, iterationCount, 2, {
+            optimalization::Limits(-33, 33),
+            optimalization::Limits(-33, 33)});
+
+    optimalization::HillClimbingConfig ackleyHcc = {};
+    ackleyHcc.set_probem(ackleyProblem);
+    ackleyHcc.neighborhoodSize = 100;
+    ackleyHcc.stdDev = 0.9;
+
+    optimalization::SimulatedAnnealingConfig ackleySAc = {};
+    ackleySAc.set_probem(ackleyProblem);
+    ackleySAc.stdDev = 0.9;
+    ackleySAc.neighborhoodSize = 100;
+    ackleySAc.temperatureReductionFactor = 0.99;
+    ackleySAc.initialTemperature = 1000;
+    ackleySAc.finalTemperature = 0.1;
+    ackleySAc.repetitionOfMetropolisAlg = 10;
+
+
+    //auto result = optimalization::hill_climbing_with_history(ackleyHcc);
+    auto result = optimalization::simulated_annealing_with_history(ackleySAc);
 
     fprintf(stdout, "After %lu iterations found best solution for %s with cost: %f. Solution: ",
             iterationCount, FnName, result.bestSolutionValue);
-    search_algorithms::print_solution(result.bestSolution);
+    optimalization::print_solution(result.bestSolution);
 
-    azgra::geometry::Plot("Hill Climbing Solution History", 1920, 1080)
+    azgra::geometry::Plot("Simulated Annealing Solution History", 1280, 720)
             .add_line(result.solutionValueHistoryFor2D, "Function cost")
             .add_line(result.bestSolutionValueHistoryFor2D, "Best function cost so far")
             .save("AckleyFunction.png");

@@ -6,7 +6,7 @@
 #include <azgra/geometry/point.h>
 #include "optimalization_functions.h"
 
-namespace search_algorithms
+namespace optimalization
 {
     inline void print_solution(const std::vector<azgra::f64> &solution)
     {
@@ -42,18 +42,44 @@ namespace search_algorithms
         std::vector<azgra::geometry::Point2D<double>> bestSolutionValueHistoryFor2D;
     };
 
-    SearchAlgorithmResult blind_search(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                       const size_t iterationCount,
-                                       const size_t dimensionCount,
-                                       const std::vector<Limits> &dimensionLimits);
+    struct OptimalizationProblem
+    {
+        std::function<azgra::f64(const std::vector<azgra::f64> &)> testFunction;
+        size_t iterationCount;
+        size_t dimensionCount;
+        std::vector<Limits> dimensionLimits;
 
-    SearchAlgorithmResult blind_search_2d_with_history(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                                       const size_t iterationCount,
-                                                       const std::vector<Limits> &dimensionLimits);
+        OptimalizationProblem() = default;
 
-    SearchAlgorithmResult hill_climbing_2d_with_history(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                                        const size_t iterationCount,
-                                                        const std::vector<Limits> &dimensionLimits,
-                                                        const size_t neighborhoodSize,
-                                                        const azgra::f64 stdDev);
+        OptimalizationProblem(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn,
+                              const size_t itCount,
+                              const size_t dimCount,
+                              const std::vector<Limits> &limits)
+                : testFunction(fn), iterationCount(itCount), dimensionCount(dimCount), dimensionLimits(limits)
+        {}
+    };
+
+    struct HillClimbingConfig : OptimalizationProblem
+    {
+        size_t neighborhoodSize;
+        azgra::f64 stdDev;
+
+        void set_probem(OptimalizationProblem problem);
+    };
+
+    struct SimulatedAnnealingConfig : HillClimbingConfig
+    {
+        azgra::f64 initialTemperature;
+        azgra::f64 finalTemperature;
+        azgra::f64 temperatureReductionFactor;
+        size_t repetitionOfMetropolisAlg;
+    };
+
+    SearchAlgorithmResult blind_search(const OptimalizationProblem &problem);
+
+    SearchAlgorithmResult blind_search_with_history(const OptimalizationProblem &problem);
+
+    SearchAlgorithmResult hill_climbing_with_history(const HillClimbingConfig &problem);
+
+    SearchAlgorithmResult simulated_annealing_with_history(const SimulatedAnnealingConfig &problem);
 }

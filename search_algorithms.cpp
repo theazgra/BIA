@@ -3,7 +3,7 @@
 
 #include "search_algorithms.h"
 
-namespace search_algorithms
+namespace optimalization
 {
     using namespace azgra;
 
@@ -22,27 +22,24 @@ namespace search_algorithms
         return generators;
     }
 
-    SearchAlgorithmResult blind_search(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                       const size_t iterationCount,
-                                       const size_t dimensionCount,
-                                       const std::vector<Limits> &dimensionLimits)
+    SearchAlgorithmResult blind_search(const OptimalizationProblem &problem)
     {
         SearchAlgorithmResult result = {};
         result.bestSolutionValue = std::numeric_limits<f64>::max();
 
         std::random_device rd;
         std::mt19937 generator(rd());
-        auto randomDistributions = initialize_random_distributions(dimensionCount, dimensionLimits);
+        auto randomDistributions = initialize_random_distributions(problem.dimensionCount, problem.dimensionLimits);
 
-        std::vector<f64> solution(dimensionCount);
-        for (size_t iteration = 0; iteration < iterationCount; ++iteration)
+        std::vector<f64> solution(problem.dimensionCount);
+        for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
-            for (size_t dim = 0; dim < dimensionCount; ++dim)
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
             {
                 solution[dim] = randomDistributions[dim](generator);
             }
 
-            f64 currentSolutionCost = testFunction(solution);
+            f64 currentSolutionCost = problem.testFunction(solution);
 
             if (currentSolutionCost < result.bestSolutionValue)
             {
@@ -54,28 +51,24 @@ namespace search_algorithms
     }
 
     SearchAlgorithmResult
-    blind_search_2d_with_history(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                 const size_t iterationCount,
-                                 const std::vector<Limits> &dimensionLimits)
+    blind_search_with_history(const OptimalizationProblem &problem)
     {
-        const size_t dimensionCount = 2;
-        always_assert(dimensionLimits.size() == dimensionCount);
         SearchAlgorithmResult result = {};
         result.bestSolutionValue = std::numeric_limits<f64>::max();
 
         std::random_device rd;
         std::mt19937 generator(rd());
-        auto randomDistributions = initialize_random_distributions(dimensionCount, dimensionLimits);
+        auto randomDistributions = initialize_random_distributions(problem.dimensionCount, problem.dimensionLimits);
 
-        std::vector<f64> solution(dimensionCount);
-        for (size_t iteration = 0; iteration < iterationCount; ++iteration)
+        std::vector<f64> solution(problem.dimensionCount);
+        for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
-            for (size_t dim = 0; dim < dimensionCount; ++dim)
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
             {
                 solution[dim] = randomDistributions[dim](generator);
             }
 
-            f64 currentSolutionCost = testFunction(solution);
+            f64 currentSolutionCost = problem.testFunction(solution);
 
             result.solutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
 
@@ -86,61 +79,55 @@ namespace search_algorithms
                 result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
             }
         }
-        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iterationCount - 1, result.bestSolutionValue));
+        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
         return result;
     }
 
-    SearchAlgorithmResult hill_climbing_2d_with_history(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &testFunction,
-                                                        const size_t iterationCount,
-                                                        const std::vector<Limits> &dimensionLimits,
-                                                        const size_t neighborhoodSize,
-                                                        const azgra::f64 stdDev)
+    SearchAlgorithmResult hill_climbing_with_history(const HillClimbingConfig &problem)
     {
-        const size_t dimensionCount = 2;
-        always_assert(dimensionLimits.size() == dimensionCount);
         SearchAlgorithmResult result = {};
         result.bestSolutionValue = std::numeric_limits<f64>::max();
 
-        std::vector<f64> solution(dimensionCount);
+        std::vector<f64> solution(problem.dimensionCount);
 
         std::random_device rd;
         std::mt19937 generator(rd());
         // Generate initial solution.
         {
-            auto randomDistributions = initialize_random_distributions(dimensionCount, dimensionLimits);
-            for (size_t dim = 0; dim < dimensionCount; ++dim)
+            auto randomDistributions = initialize_random_distributions(problem.dimensionCount, problem.dimensionLimits);
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
             {
                 solution[dim] = randomDistributions[dim](generator);
             }
         }
 
 
-        for (size_t iteration = 0; iteration < iterationCount; ++iteration)
+        for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
-            f64 currentSolutionCost = testFunction(solution);
+            f64 currentSolutionCost = problem.testFunction(solution);
 
             // Generate neighborhood of solution
-            std::vector<f64> bestNeighbor(dimensionCount);
+            std::vector<f64> bestNeighbor(problem.dimensionCount);
             f64 lowestNeighborCost = std::numeric_limits<f64>::max();
 
             // Generate normal distributions for neighborhood of solution.
-            std::vector<std::normal_distribution<f64>> normalDistributions(dimensionCount);
-            for (size_t dim = 0; dim < dimensionCount; ++dim)
+            std::vector<std::normal_distribution<f64>> normalDistributions(problem.dimensionCount);
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
             {
-                normalDistributions[dim] = std::normal_distribution<f64>(solution[dim], stdDev);
+                normalDistributions[dim] = std::normal_distribution<f64>(solution[dim], problem.stdDev);
             }
 
             // Generate `neighborhoodSize` neighbors
-            for (size_t neighborId = 0; neighborId < neighborhoodSize; ++neighborId)
+            for (size_t neighborId = 0; neighborId < problem.neighborhoodSize; ++neighborId)
             {
                 // Generate neighbor parameters
-                std::vector<f64> neighbor(dimensionCount);
-                for (size_t dim = 0; dim < dimensionCount; ++dim)
+                std::vector<f64> neighbor(problem.dimensionCount);
+                for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
                 {
                     neighbor[dim] = normalDistributions[dim](generator);
                 }
                 // Test neighbor.
-                f64 neighborCost = testFunction(neighbor);
+                f64 neighborCost = problem.testFunction(neighbor);
                 if (neighborCost <= lowestNeighborCost)
                 {
                     lowestNeighborCost = neighborCost;
@@ -162,8 +149,106 @@ namespace search_algorithms
             }
         }
 
-        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iterationCount - 1, result.bestSolutionValue));
+        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
         return result;
+    }
+
+    SearchAlgorithmResult simulated_annealing_with_history(const SimulatedAnnealingConfig &problem)
+    {
+        SearchAlgorithmResult result = {};
+        result.bestSolutionValue = std::numeric_limits<f64>::max();
+
+        std::vector<f64> solution(problem.dimensionCount);
+        std::random_device rd;
+        std::mt19937 generator(rd());
+        std::uniform_real_distribution<f64> zeroOneDistribution(0, 1);
+
+        // Generate initial solution.
+        {
+            auto randomDistributions = initialize_random_distributions(problem.dimensionCount, problem.dimensionLimits);
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
+            {
+                solution[dim] = randomDistributions[dim](generator);
+            }
+        }
+
+        f64 currentTemperature = problem.initialTemperature;
+        size_t iteration = 0;
+        while (currentTemperature > problem.finalTemperature)
+        {
+            f64 currentSolutionCost = problem.testFunction(solution);
+
+            // Generate neighborhood of solution
+            std::vector<std::vector<f64>> neighborhood(problem.neighborhoodSize);
+            // Generate normal distributions for neighborhood of solution.
+            std::vector<std::normal_distribution<f64>> normalDistributions(problem.dimensionCount);
+            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
+            {
+                normalDistributions[dim] = std::normal_distribution<f64>(solution[dim], problem.stdDev);
+            }
+
+            // Generate `neighborhoodSize` neighbors
+            for (size_t neighborId = 0; neighborId < problem.neighborhoodSize; ++neighborId)
+            {
+                // Generate neighbor parameters
+                std::vector<f64> neighbor(problem.dimensionCount);
+                for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
+                {
+                    neighbor[dim] = normalDistributions[dim](generator);
+                }
+                neighborhood[neighborId] = neighbor;
+            }
+
+            std::uniform_int_distribution<size_t> randomNeighborDistribution(0, (problem.neighborhoodSize - 1));
+            for (size_t metropolisIt = 0; metropolisIt < problem.repetitionOfMetropolisAlg; ++metropolisIt)
+            {
+                std::vector<f64> neighbor = neighborhood[randomNeighborDistribution(generator)];
+                f64 neighborCost = problem.testFunction(neighbor);
+                f64 deltaF = neighborCost - currentSolutionCost;
+
+                if (deltaF < 0)
+                {
+                    // Move to a better solution is always accepted
+                    solution = neighbor;
+                    currentSolutionCost = neighborCost;
+                }
+                else
+                {
+                    f64 r = zeroOneDistribution(generator);
+                    f64 rTest = std::exp(((-deltaF) / currentTemperature));
+                    if (r < rTest)
+                    {
+                        // Move to a worse solution or current solution will (would?) remain unchanged.
+                        solution = neighbor;
+                        currentSolutionCost = neighborCost;
+                    }
+                }
+            }
+
+            if (currentSolutionCost < result.bestSolutionValue)
+            {
+                result.bestSolutionValue = currentSolutionCost;
+                result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
+                // TODO: Should we also set result solution here? Or set it to the last found solution?
+                result.bestSolution = solution;
+            }
+
+            result.solutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
+            ++iteration;
+            currentTemperature *= problem.temperatureReductionFactor;
+        }
+//        result.bestSolution = solution;
+//        result.bestSolutionValue = problem.testFunction(solution);
+        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, result.bestSolutionValue));
+        return result;
+    }
+
+    void HillClimbingConfig::set_probem(OptimalizationProblem problem)
+    {
+        testFunction = problem.testFunction;
+        iterationCount = problem.iterationCount;
+        dimensionLimits = problem.dimensionLimits;
+        dimensionCount = problem.dimensionCount;
     }
 }
 #pragma clang diagnostic pop
