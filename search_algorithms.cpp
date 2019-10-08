@@ -22,6 +22,31 @@ namespace optimalization
         return generators;
     }
 
+    static inline std::vector<std::normal_distribution<f64>>
+    get_normal_distributions_around_solution(const std::vector<f64> &solution, const f64 stdDev)
+    {
+
+        std::vector<std::normal_distribution<f64>> distributions(solution.size());
+        for (size_t dim = 0; dim < solution.size(); ++dim)
+        {
+            distributions[dim] = std::normal_distribution<f64>(solution[dim], stdDev);
+        }
+        return distributions;
+    }
+
+    template<typename Generator, typename Distribution>
+    static inline std::vector<f64> generate_random_solution(Generator &generator, std::vector<Distribution> &distributions)
+    {
+        std::vector<f64> solution(distributions.size());
+        // Generate `neighborhoodSize` neighbors
+        for (size_t dim = 0; dim < distributions.size(); ++dim)
+        {
+            solution[dim] = distributions[dim](generator);
+        }
+        return solution;
+    }
+
+
     SearchAlgorithmResult blind_search(const OptimalizationProblem &problem)
     {
         SearchAlgorithmResult result = {};
@@ -102,6 +127,7 @@ namespace optimalization
         }
 
 
+        size_t better=0;
         for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
             f64 currentSolutionCost = problem.testFunction(solution);
@@ -144,12 +170,12 @@ namespace optimalization
                 {
                     result.bestSolutionValue = lowestNeighborCost;
                     result.bestSolution = std::vector<f64>(solution);
-                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, lowestNeighborCost));
+                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(better++, lowestNeighborCost));
                 }
             }
         }
 
-        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
+        //result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
         return result;
     }
 
@@ -178,31 +204,12 @@ namespace optimalization
         {
             f64 currentSolutionCost = problem.testFunction(solution);
 
-            // Generate neighborhood of solution
-            std::vector<std::vector<f64>> neighborhood(problem.neighborhoodSize);
             // Generate normal distributions for neighborhood of solution.
-            std::vector<std::normal_distribution<f64>> normalDistributions(problem.dimensionCount);
-            for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
-            {
-                normalDistributions[dim] = std::normal_distribution<f64>(solution[dim], problem.stdDev);
-            }
-
-            // Generate `neighborhoodSize` neighbors
-            for (size_t neighborId = 0; neighborId < problem.neighborhoodSize; ++neighborId)
-            {
-                // Generate neighbor parameters
-                std::vector<f64> neighbor(problem.dimensionCount);
-                for (size_t dim = 0; dim < problem.dimensionCount; ++dim)
-                {
-                    neighbor[dim] = normalDistributions[dim](generator);
-                }
-                neighborhood[neighborId] = neighbor;
-            }
-
-            std::uniform_int_distribution<size_t> randomNeighborDistribution(0, (problem.neighborhoodSize - 1));
+            std::vector<std::normal_distribution<f64>> neighborhoodDistribution = get_normal_distributions_around_solution(solution,
+                                                                                                                           problem.stdDev);
             for (size_t metropolisIt = 0; metropolisIt < problem.repetitionOfMetropolisAlg; ++metropolisIt)
             {
-                std::vector<f64> neighbor = neighborhood[randomNeighborDistribution(generator)];
+                std::vector<f64> neighbor = generate_random_solution(generator, neighborhoodDistribution);
                 f64 neighborCost = problem.testFunction(neighbor);
                 f64 deltaF = neighborCost - currentSolutionCost;
 
@@ -211,6 +218,7 @@ namespace optimalization
                     // Move to a better solution is always accepted
                     solution = neighbor;
                     currentSolutionCost = neighborCost;
+                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration++, currentSolutionCost));
                 }
                 else
                 {
@@ -221,25 +229,18 @@ namespace optimalization
                         // Move to a worse solution or current solution will (would?) remain unchanged.
                         solution = neighbor;
                         currentSolutionCost = neighborCost;
+                        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration++, currentSolutionCost));
                     }
                 }
-            }
-
-            if (currentSolutionCost < result.bestSolutionValue)
-            {
-                result.bestSolutionValue = currentSolutionCost;
-                result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
-                // TODO: Should we also set result solution here? Or set it to the last found solution?
-                result.bestSolution = solution;
             }
 
             result.solutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, currentSolutionCost));
             ++iteration;
             currentTemperature *= problem.temperatureReductionFactor;
         }
-//        result.bestSolution = solution;
-//        result.bestSolutionValue = problem.testFunction(solution);
-        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, result.bestSolutionValue));
+        result.bestSolution = solution;
+        result.bestSolutionValue = problem.testFunction(solution);
+        //result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, result.bestSolutionValue));
         return result;
     }
 
