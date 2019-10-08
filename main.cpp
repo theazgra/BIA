@@ -19,12 +19,40 @@ int main(int argc, char **argv)
     //visualize_function(-10, 10, 0.25, -10, 10, 0.25, dixon_price, "plots/dixon_price.png");
 
 
-    const size_t iterationCount = 10000;
-    const char *FnName = "Ackley Function";
+//    const size_t iterationCount = 10000;
+//    const char *FnName = "Ackley Function";
+//
+//    optimalization::OptimalizationProblem ackleyProblem(ackley_simple, iterationCount, 2, {
+//            optimalization::Limits(-33, 33),
+//            optimalization::Limits(-33, 33)});
+//
+//    optimalization::HillClimbingConfig ackleyHcc = {};
+//    ackleyHcc.set_probem(ackleyProblem);
+//    ackleyHcc.neighborhoodSize = 100;
+//    ackleyHcc.stdDev = 0.9;
+//
+//    optimalization::SimulatedAnnealingConfig ackleySAc = {};
+//    ackleySAc.set_probem(ackleyProblem);
+//    ackleySAc.stdDev = 0.9;
+//    ackleySAc.neighborhoodSize = 100;
+//    ackleySAc.temperatureReductionFactor = 0.99;
+//    ackleySAc.initialTemperature = 200;
+//    ackleySAc.finalTemperature = 0.1;
+//    ackleySAc.repetitionOfMetropolisAlg = 10;
+//
+//    optimalization::OptimalizationProblem prob(ackley_simple, iterationCount, 2, {
+//            optimalization::Limits(-33, 33),
+//            optimalization::Limits(-33, 33)});
+//
+////    optimalization::OptimalizationProblem prob(griewank, iterationCount, 2, {
+////            optimalization::Limits(-600, 600),
+////            optimalization::Limits(-600, 600)});
+//
+//    auto result = optimalization::blind_search_with_history(prob);
+//    //auto result = optimalization::hill_climbing_with_history(ackleyHcc);
+//    //auto result = optimalization::simulated_annealing_with_history(ackleySAc);
+//
 
-    optimalization::OptimalizationProblem ackleyProblem(ackley_simple, iterationCount, 2, {
-            optimalization::Limits(-33, 33),
-            optimalization::Limits(-33, 33)});
 
     optimalization::OptimalizationProblem styblinskiTangProblem(styblinski_tang, iterationCount, 2, {
             optimalization::Limits(-5, 5),
@@ -43,13 +71,26 @@ int main(int argc, char **argv)
     ackleySAc.finalTemperature = 0.05;
     ackleySAc.repetitionOfMetropolisAlg = 1;
 
+    size_t iter = 1000;
+    optimalization::OptimalizationProblem schwefelProblem(sphere, iter, 10,
+                                                          {optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12),
+                                                           optimalization::Limits(-5.12, 5.12)});
 
     auto result = optimalization::hill_climbing_with_history(ackleyHcc);
     //auto result = optimalization::simulated_annealing_with_history(ackleySAc);
 
-    fprintf(stdout, "After %lu iterations found best solution for %s with cost: %f. Solution: ",
-            iterationCount, FnName, result.bestSolutionValue);
-    optimalization::print_solution(result.bestSolution);
+    optimalization::HillClimbingConfig schwefelHCC = {};
+    schwefelHCC.set_probem(schwefelProblem);
+    schwefelHCC.stdDev = 1.0;
+    schwefelHCC.neighborhoodSize = 50;
 
     azgra::geometry::Plot("Simulated Annealing Solution History", 1280, 720)
             .add_line(result.solutionValueHistoryFor2D, "Function cost")
@@ -104,6 +145,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    show_solution(iter, "schwefel-HC", schwefelHccResult);
+    show_solution(iter, "schwefel-SA", schwefelSAResult);
+//    fprintf(stdout, "After %lu iterations found best solution for %s with cost: %f. Solution: ",
+//            iter, "Schwefel", schwefelHccResult.bestSolutionValue);
+//    optimalization::print_solution(schwefelHccResult.bestSolution);
+//
+//    azgra::geometry::Plot("Hill climbing - schwefel", 1280, 720)
+//            //.add_line(schwefelHccResult.solutionValueHistoryFor2D, "Function cost")
+//            .add_line(schwefelHccResult.bestSolutionValueHistoryFor2D, "Best function cost so far")
+//            .display_window();
 
     return 0;
 #endif

@@ -126,6 +126,7 @@ namespace optimalization
         }
 
 
+        size_t better=0;
         for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
             f64 currentSolutionCost = problem.testFunction(solution);
@@ -168,12 +169,12 @@ namespace optimalization
                 {
                     result.bestSolutionValue = lowestNeighborCost;
                     result.bestSolution = std::vector<f64>(solution);
-                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, lowestNeighborCost));
+                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(better++, lowestNeighborCost));
                 }
             }
         }
 
-        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
+        //result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(problem.iterationCount - 1, result.bestSolutionValue));
         return result;
     }
 
@@ -203,10 +204,11 @@ namespace optimalization
             f64 currentSolutionCost = problem.testFunction(solution);
 
             // Generate normal distributions for neighborhood of solution.
-            std::vector<std::normal_distribution<f64>> normalDistributions = normal_distribution_around_solution(solution, problem.stdDev);
+            std::vector<std::normal_distribution<f64>> neighborhoodDistribution = get_normal_distributions_around_solution(solution,
+                                                                                                                           problem.stdDev);
             for (size_t metropolisIt = 0; metropolisIt < problem.repetitionOfMetropolisAlg; ++metropolisIt)
             {
-                std::vector<f64> neighbor = generate_random_solution(generator, normalDistributions);
+                std::vector<f64> neighbor = generate_random_solution(generator, neighborhoodDistribution);
                 f64 neighborCost = problem.testFunction(neighbor);
                 f64 deltaF = neighborCost - currentSolutionCost;
 
@@ -215,6 +217,7 @@ namespace optimalization
                     // Move to a better solution is always accepted
                     solution = neighbor;
                     currentSolutionCost = neighborCost;
+                    result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration++, currentSolutionCost));
                 }
                 else
                 {
@@ -225,6 +228,7 @@ namespace optimalization
                         // Move to a worse solution or current solution will (would?) remain unchanged.
                         solution = neighbor;
                         currentSolutionCost = neighborCost;
+                        result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration++, currentSolutionCost));
                     }
                 }
             }
@@ -235,6 +239,7 @@ namespace optimalization
         }
         result.bestSolution = solution;
         result.bestSolutionValue = problem.testFunction(solution);
+        //result.bestSolutionValueHistoryFor2D.push_back(geometry::Point2D<double>(iteration, result.bestSolutionValue));
         return result;
     }
 
