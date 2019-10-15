@@ -126,7 +126,7 @@ namespace optimalization
         }
 
 
-        size_t better=0;
+        size_t better = 0;
         for (size_t iteration = 0; iteration < problem.iterationCount; ++iteration)
         {
             f64 currentSolutionCost = problem.testFunction(solution);
@@ -204,8 +204,8 @@ namespace optimalization
             f64 currentSolutionCost = problem.testFunction(solution);
 
             // Generate normal distributions for neighborhood of solution.
-            std::vector<std::normal_distribution<f64>> neighborhoodDistribution = get_normal_distributions_around_solution(solution,
-                                                                                                                           problem.stdDev);
+            std::vector<std::normal_distribution<f64>> neighborhoodDistribution = normal_distribution_around_solution(solution,
+                                                                                                                      problem.stdDev);
             for (size_t metropolisIt = 0; metropolisIt < problem.repetitionOfMetropolisAlg; ++metropolisIt)
             {
                 std::vector<f64> neighbor = generate_random_solution(generator, neighborhoodDistribution);
