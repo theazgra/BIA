@@ -45,26 +45,153 @@ namespace tsp
             std::shuffle(basicCell.begin(), basicCell.end(), mtGenerator);
             // NOTE(Moravec): Should we check if basicCell shuffle was successful?
             m_currentPopulation[cellIndex].push_back(startingCity);
-            m_currentPopulation[cellIndex].insert(m_currentPopulation[cellIndex].end(),basicCell.begin(),basicCell.end());
+            m_currentPopulation[cellIndex].insert(m_currentPopulation[cellIndex].end(), basicCell.begin(), basicCell.end());
             assert(m_currentPopulation[cellIndex].size() == m_cityCount);
         }
     }
 
-    std::vector<geometry::Point2D<f64>> TspSolver::solve(const size_t generationCount, const f64 mutationProbability)
+    TspSolution TspSolver::solve(const size_t generationCount, const f64 mutationProbability)
     {
         generate_random_population();
+        m_mutationDistribution = std::discrete_distribution<int>({1.0 - mutationProbability, mutationProbability});
+        m_cityCountDistribution = std::uniform_int_distribution<size_t>(0, m_cityCount - 1);
+        m_populationDistribution = std::uniform_int_distribution<size_t>(0, m_populationSize - 1);
 
+        f64 currentCost = current_population_average_distance();
+        fprintf(stdout, "New generation cost: %.6f\n", currentCost);
         for (size_t generation = 0; generation < generationCount; ++generation)
         {
-            // for each cell in current population select random partner
-            // create offspring ( two way breeding )
-            // mutation of offspring with probability
-            // compare offspring with current cell -> replace?
-            //      comparing based on fitness -> minimum distance
+            auto nextGeneration = generate_offsprings();
+            replace_population(nextGeneration);
+            currentCost = current_population_average_distance();
+            fprintf(stdout, "New generation cost: %.6f\n", currentCost);
         }
 
+        TspSolution solution = {};
+        f64 bestCost = std::numeric_limits<f64>::max();
+        for (size_t cellIndex = 0; cellIndex < m_populationSize; ++cellIndex)
+        {
+            f64 currentCellCost = cell_cost(m_currentPopulation[cellIndex]);
+            if (currentCellCost < bestCost)
+            {
+                bestCost = currentCellCost;
+                solution.bestSolution=m_currentPopulation[cellIndex];
+            }
+        }
+        return solution;
+    }
 
-        return std::vector<geometry::Point2D<f64>>();
+    void TspSolver::replace_population(const std::vector<std::vector<size_t>> &nextPopulation)
+    {
+        for (size_t cellIndex = 0; cellIndex < m_populationSize; ++cellIndex)
+        {
+            f64 currentCellCost = cell_cost(m_currentPopulation[cellIndex]);
+            f64 offspringCellCost = cell_cost(nextPopulation[cellIndex]);
+            if (offspringCellCost <= currentCellCost)
+            {
+                m_currentPopulation[cellIndex] = nextPopulation[cellIndex];
+            }
+        }
+    }
+
+
+    std::vector<std::vector<size_t>> TspSolver::generate_offsprings()
+    {
+        std::random_device m_randomDevice;
+        std::mt19937 MTgenerator(m_randomDevice());
+
+        std::vector<std::vector<size_t>> nextPopulation(m_populationSize);
+        for (size_t cellIndex = 0; cellIndex < m_populationSize; ++cellIndex)
+        {
+            size_t partnerIndex = m_populationDistribution(MTgenerator);
+            while (partnerIndex == cellIndex)
+            {
+                partnerIndex = m_populationDistribution(MTgenerator);
+            }
+            nextPopulation[cellIndex] = breed(cellIndex, partnerIndex, MTgenerator);
+        }
+        return nextPopulation;
+    }
+
+    std::pair<size_t, size_t> TspSolver::generate_random_pair(std::mt19937 &generator, std::uniform_int_distribution<size_t> &distribution)
+    {
+        size_t p1 = distribution(generator);
+        size_t p2 = distribution(generator);
+        while (p2 == p1)
+        {
+            p2 = distribution(generator);
+        }
+        return std::make_pair(p1, p2);
+    }
+
+    f64 TspSolver::cell_cost(const std::vector<size_t> &cell) const
+    {
+        assert(cell.size() == m_cityCount);
+        f64 distance = 0.0;
+        for (size_t i = 0; i < m_cityCount; ++i)
+        {
+            distance += m_cities[cell[i]].euclidean_distance(m_cities[cell[(i + 1) % m_cityCount]]);
+        }
+        return distance;
+    }
+
+    std::vector<size_t> TspSolver::breed(const size_t parentA, const size_t parentB, std::mt19937 &generator)
+    {
+        auto points = generate_random_pair(generator, m_cityCountDistribution);
+        size_t crossoverP1 = points.first;
+        size_t crossoverP2 = points.second;
+        if (crossoverP2 < crossoverP1)
+        {
+            auto tmp = crossoverP1;
+            crossoverP1 = crossoverP2;
+            crossoverP2 = tmp;
+        }
+        always_assert(crossoverP1 < crossoverP2);
+
+        std::vector<size_t> offspring(m_cityCount);
+        for (size_t i = 0; i < m_cityCount; ++i)
+        {
+            if (i < crossoverP1)
+            {
+                offspring[i] = m_currentPopulation[parentA][i];
+            }
+            else if (i >= crossoverP2)
+            {
+                offspring[i] = m_currentPopulation[parentA][i];
+            }
+        }
+
+        size_t parentBGeneIndex = 0;
+        for (size_t secondPartIndex = crossoverP1; secondPartIndex < crossoverP2; ++secondPartIndex)
+        {
+            size_t gene = m_currentPopulation[parentB][parentBGeneIndex++];
+            while (collection::contains(offspring, gene))
+            {
+                gene = m_currentPopulation[parentB][parentBGeneIndex++];
+            }
+            offspring[secondPartIndex] = gene;
+        }
+
+        // mutate
+        if (m_mutationDistribution(generator))
+        {
+            auto swapIndices = generate_random_pair(generator, m_cityCountDistribution);
+            auto tmp = offspring[swapIndices.first];
+            offspring[swapIndices.first] = offspring[swapIndices.second];
+            offspring[swapIndices.second] = tmp;
+        }
+        return offspring;
+    }
+
+    f64 TspSolver::current_population_average_distance() const
+    {
+        f64 avgDistance = 0;
+        for (size_t i = 0; i < m_populationSize; ++i)
+        {
+            avgDistance += cell_cost(m_currentPopulation[i]);
+        }
+        avgDistance /= static_cast<f64>(m_populationSize);
+        return avgDistance;
     }
 
 

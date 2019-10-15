@@ -17,7 +17,7 @@ int main(int argc, char **argv)
                     Point2D<f64>(52, 36), Point2D<f64>(97, 96), Point2D<f64>(1, 31), Point2D<f64>(51, 81), Point2D<f64>(17, 88),
             };
     tsp::TspSolver solver(cities, 10);
-    solver.solve(10,0.5);
+    auto solution = solver.solve(10, 0.5);
     // 20 mest (2D body X,Y)
     // vzdalenost v matici sousednosti
     // dvoubodove krizeni ve 2 bodech ;1. cast z prvniho,3. cast z prvniho,2.cast z druheho pokud tam jeste nejsou
