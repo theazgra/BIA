@@ -45,17 +45,21 @@ namespace tsp
             std::shuffle(basicCell.begin(), basicCell.end(), mtGenerator);
             // NOTE(Moravec): Should we check if basicCell shuffle was successful?
             m_currentPopulation[cellIndex].push_back(startingCity);
+
             m_currentPopulation[cellIndex].insert(m_currentPopulation[cellIndex].end(), basicCell.begin(), basicCell.end());
-            assert(m_currentPopulation[cellIndex].size() == m_cityCount);
+            always_assert(m_currentPopulation[cellIndex].size() == m_cityCount);
+            always_assert(m_currentPopulation[cellIndex][0] == startingCity);
         }
     }
 
     TspSolution TspSolver::solve(const size_t generationCount, const f64 mutationProbability)
     {
+        TspSolution solution = {};
         generate_random_population();
         m_mutationDistribution = std::discrete_distribution<int>({1.0 - mutationProbability, mutationProbability});
         m_cityCountDistribution = std::uniform_int_distribution<size_t>(0, m_cityCount - 1);
         m_populationDistribution = std::uniform_int_distribution<size_t>(0, m_populationSize - 1);
+        m_crossoverDistribution = std::uniform_int_distribution<size_t>(1, m_cityCount - 1);
 
         f64 currentCost = current_population_average_distance();
         fprintf(stdout, "New generation cost: %.6f\n", currentCost);
@@ -65,9 +69,18 @@ namespace tsp
             replace_population(nextGeneration);
             currentCost = current_population_average_distance();
             fprintf(stdout, "New generation cost: %.6f\n", currentCost);
+
+            solution.solutionHistory.push_back(std::move(get_best_from_population()));
         }
 
-        TspSolution solution = {};
+        solution.bestSolution = std::move(get_best_from_population());
+
+        return solution;
+    }
+
+    std::vector<size_t> TspSolver::get_best_from_population() const
+    {
+        std::vector<size_t> best;
         f64 bestCost = std::numeric_limits<f64>::max();
         for (size_t cellIndex = 0; cellIndex < m_populationSize; ++cellIndex)
         {
@@ -75,10 +88,10 @@ namespace tsp
             if (currentCellCost < bestCost)
             {
                 bestCost = currentCellCost;
-                solution.bestSolution=m_currentPopulation[cellIndex];
+                best = m_currentPopulation[cellIndex];
             }
         }
-        return solution;
+        return best;
     }
 
     void TspSolver::replace_population(const std::vector<std::vector<size_t>> &nextPopulation)
@@ -130,14 +143,17 @@ namespace tsp
         f64 distance = 0.0;
         for (size_t i = 0; i < m_cityCount; ++i)
         {
-            distance += m_cities[cell[i]].euclidean_distance(m_cities[cell[(i + 1) % m_cityCount]]);
+            distance += m_cityDistance.at(cell[i], cell[(i + 1) % m_cityCount]);
         }
         return distance;
     }
 
     std::vector<size_t> TspSolver::breed(const size_t parentA, const size_t parentB, std::mt19937 &generator)
     {
-        auto points = generate_random_pair(generator, m_cityCountDistribution);
+        always_assert(m_currentPopulation[parentA][0] == 0);
+        always_assert(m_currentPopulation[parentB][0] == 0);
+
+        auto points = generate_random_pair(generator, m_crossoverDistribution);
         size_t crossoverP1 = points.first;
         size_t crossoverP2 = points.second;
         if (crossoverP2 < crossoverP1)
@@ -149,7 +165,9 @@ namespace tsp
         always_assert(crossoverP1 < crossoverP2);
 
         std::vector<size_t> offspring(m_cityCount);
-        for (size_t i = 0; i < m_cityCount; ++i)
+        always_assert(m_currentPopulation[parentA][0] == m_currentPopulation[parentB][0]);
+        offspring[0] = m_currentPopulation[parentA][0];
+        for (size_t i = 1; i < m_cityCount; ++i)
         {
             if (i < crossoverP1)
             {
@@ -162,20 +180,27 @@ namespace tsp
         }
 
         size_t parentBGeneIndex = 0;
+#if DEBUG
+        std::vector<size_t> geneHistory;
+#endif
         for (size_t secondPartIndex = crossoverP1; secondPartIndex < crossoverP2; ++secondPartIndex)
         {
             size_t gene = m_currentPopulation[parentB][parentBGeneIndex++];
+#if DEBUG
+            geneHistory.push_back(gene);
+#endif
             while (collection::contains(offspring, gene))
             {
                 gene = m_currentPopulation[parentB][parentBGeneIndex++];
             }
+            always_assert(gene < m_cityCount);
             offspring[secondPartIndex] = gene;
         }
 
         // mutate
         if (m_mutationDistribution(generator))
         {
-            auto swapIndices = generate_random_pair(generator, m_cityCountDistribution);
+            auto swapIndices = generate_random_pair(generator, m_crossoverDistribution);
             auto tmp = offspring[swapIndices.first];
             offspring[swapIndices.first] = offspring[swapIndices.second];
             offspring[swapIndices.second] = tmp;
@@ -193,6 +218,8 @@ namespace tsp
         avgDistance /= static_cast<f64>(m_populationSize);
         return avgDistance;
     }
+
+
 
 
 }

@@ -5,13 +5,13 @@
 #include <azgra/geometry/point.h>
 #include <azgra/collection/vector_linq.h>
 #include <algorithm>
-
 namespace tsp
 {
 
     struct TspSolution
     {
         std::vector<size_t> bestSolution;
+        std::vector<std::vector<size_t>> solutionHistory;
     };
 
     using namespace azgra;
@@ -28,6 +28,7 @@ namespace tsp
         std::discrete_distribution<int> m_mutationDistribution;
         std::uniform_int_distribution<size_t> m_cityCountDistribution;
         std::uniform_int_distribution<size_t> m_populationDistribution;
+        std::uniform_int_distribution<size_t> m_crossoverDistribution;
 
         std::pair<size_t, size_t> generate_random_pair(std::mt19937 &generator, std::uniform_int_distribution<size_t> &distribution);
 
@@ -42,6 +43,7 @@ namespace tsp
 
         f64 cell_cost(const std::vector<size_t> &cell) const;
         f64 current_population_average_distance() const;
+        [[nodiscard]] std::vector<size_t> get_best_from_population() const;
 
     public:
         explicit TspSolver(std::vector<geometry::Point2D<f64>> cities, size_t populationSize);
