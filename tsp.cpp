@@ -4,6 +4,31 @@
 
 namespace tsp
 {
+    std::vector<azgra::geometry::Point2D<f64>> TspSolver::generate_random_cities(size_t cityCount, f64 maxX, f64 maxY) const
+    {
+        f64 radius = 20.0;
+        geometry::Point2D<f64> center(500, 500);
+        std::vector<azgra::geometry::Point2D<f64>> cities(cityCount);
+        f64 x, y;
+        f64 angleStep = (2.0 * M_PI) / cityCount;
+        f64 angle = 0;
+        for (size_t i = 0; i < cityCount; ++i)
+        {
+            x = center.x + (radius * cos(angle));
+            y = center.y + (radius * sin(angle));
+            cities[i] = azgra::geometry::Point2D<f64>(x, y);
+
+            angle += angleStep;
+        }
+
+//        geometry::Plot circle("Circle");
+//        for (size_t i = 0; i < cityCount; ++i)
+//            circle.add_2d_point(cities[i]);
+//        circle.display_window();
+
+        return cities;
+    }
+
     TspSolver::TspSolver(std::vector<geometry::Point2D<f64>> cities, size_t populationSize)
     {
         m_cities = std::vector<geometry::Point2D<f64>>(std::move(cities));
@@ -11,6 +36,11 @@ namespace tsp
         m_populationSize = populationSize;
         m_currentPopulation.resize(m_populationSize);
         initialize_distance_matrix();
+    }
+
+    TspSolver::TspSolver(const size_t cityCout, const f64 maxX, const f64 maxY, size_t populationSize) :
+            TspSolver(generate_random_cities(cityCout, maxX, maxY), populationSize)
+    {
     }
 
     void TspSolver::initialize_distance_matrix()
@@ -219,7 +249,8 @@ namespace tsp
         return avgDistance;
     }
 
-
-
-
+    std::vector<geometry::Point2D<f64>> const &TspSolver::get_cities() const
+    {
+        return m_cities;
+    }
 }
