@@ -2,7 +2,7 @@
 
 #include <azgra/collection/vector_linq.h>
 #include <azgra/collection/set_utilities.h>
-#include <azgra/collection/linq.h>
+//#include <azgra/collection/linq.h>
 #include <boost/optional.hpp>
 
 template<typename T>
@@ -100,18 +100,18 @@ public:
         size_t k = 0;
         size_t l = 0;
 
-//        1. Find the largest index k such that a[k] < a[k + 1]. If no such index exists, the permutation is the last permutation.
+        // Find the smallest non-ascending suffix
         if (!find_k(k))
             return false;
 
-//        2. Find the largest index l greater than k such that a[k] < a[l].
+        // Swap the smallest element of the suffix with the pivot, element before suffix
         if (!find_l(k, l))
             return false;
 
-//        3. Swap the value of a[k] with that of a[l].
+        // swap those.
         swap(k, l);
 
-//        4. Reverse the sequence from a[k + 1] up to and including the final element a[n].
+        // (sort) reverse suffix so it is ascending
         reverse(k + 1);
         return true;
     }

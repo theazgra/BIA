@@ -34,6 +34,8 @@ namespace optimalization
         {}
     };
 
+    std::vector<Limits> generate_limits(const size_t dimension, const f64 min, const f64 max);
+
     struct SearchAlgorithmResult
     {
         std::vector<azgra::f64> bestSolution;
