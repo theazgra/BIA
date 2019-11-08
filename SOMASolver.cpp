@@ -55,8 +55,11 @@ Individual SOMASolver::generate_random_individual()
     return individual;
 }
 
-void SOMASolver::solve()
+SOMAResult SOMASolver::solve()
 {
+    SOMAResult result = {};
+    result.invidualsInTime.resize(m_migrations);
+    //TODO (Moravec): Record population history!.
     initialize_population();
     calculate_fitness_for_population(m_currentPopulation);
     f64 avgFitness = average_fitness();
@@ -64,6 +67,11 @@ void SOMASolver::solve()
     Individual leader = find_leader(m_currentPopulation);
     for (size_t migration = 0; migration < m_migrations; ++migration)
     {
+        result.invidualsInTime[migration] = azgra::collection::select(m_currentPopulation.begin(), m_currentPopulation.end(), [](const
+        Individual &individual)
+        { return individual.attributes; });
+
+
         std::vector<Individual> nextPopulation(m_populationSize);
 
         for (size_t indiv = 0; indiv < m_populationSize; ++indiv)
@@ -87,10 +95,14 @@ void SOMASolver::solve()
         m_currentPopulation = nextPopulation;
         leader = find_leader(m_currentPopulation);
         avgFitness = average_fitness();
-//        fprintf(stdout, "\rMigration %lu/%lu average cost: %.5f Leader cost: %.5f", migration + 1, m_migrations, avgFitness, leader.fitness);
+        //fprintf(stdout, "\rMigration %lu/%lu average cost: %.5f Leader cost: %.5f", migration + 1, m_migrations, avgFitness, leader.fitness);
+        fprintf(stdout, "Migration %lu/%lu average cost: %.5f Leader cost: %.5f\n", migration + 1, m_migrations, avgFitness, leader
+        .fitness);
     }
     fprintf(stdout, "\rMigration %lu/%lu average cost: %.5f Leader cost: %.5f", m_migrations, m_migrations, avgFitness, leader.fitness);
+    result.result = leader.fitness;
     fprintf(stdout, "\n");
+    return result;
 }
 
 void SOMASolver::calculate_fitness_for_population(std::vector<Individual> &population)

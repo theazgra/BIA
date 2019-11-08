@@ -10,6 +10,6 @@ using namespace azgra;
 
 void visualize_function(const f64 xMin, const f64 xMax, const f64 xStep, const f64 yMin, const f64 yMax, const f64 yStep,
                         const std::function<f64(std::vector<f64>)> &fn,
-                        azgra::basic_string_view__<char> plotFileName);
+                        azgra::BasicStringView<char> plotFileName);
 
 #pragma clang diagnostic pop
