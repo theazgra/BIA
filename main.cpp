@@ -77,38 +77,16 @@ static void print_permutation(const std::vector<int> &permutation)
 int main(int argc, char **argv)
 {
     const size_t dimension = 3;
-    optimalization::OptimalizationProblem problem(griewank, 1, dimension, generate_limits(dimension, -600, 600));
-    //optimalization::OptimalizationProblem problem(rastrigin, 1, dimension, generate_limits(dimension, -5.12, 5.12));
-    SOMASolver soma(problem, 20, 200);
+    //optimalization::OptimalizationProblem problem(griewank, 1, dimension, generate_limits(dimension, -600, 600));
+    //optimalization::OptimalizationProblem problem(griewank, 1, dimension, generate_limits(dimension, -600, 600));
+    optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));
+    optimalization::OptimalizationProblem schwefelProb(schwefel, 1, dimension, generate_limits(dimension, -500.0, 500.0));
+    SOMASolver soma(schwefelProb, 100, 10);
     //soma.edit_parameters(2.1, 0.21, 0.8, 0.01);
     auto solution = soma.solve();
     auto points3d = soma_individuals_to_points(solution);
-    azgra::geometry::dump_3d_points_history(points3d, "soma_points.pts");
+    azgra::geometry::dump_3d_points_history(points3d, "schwefel.pts");
     fprintf(stdout, "done\n");
-//    using namespace azgra::collection;
-//    Stopwatch stopwatch;
-//    for (int permutationSize = 3; permutationSize <= 9; ++permutationSize)
-//    {
-//        std::vector<int> items(permutationSize);
-//        for (int i = 0; i < permutationSize; ++i)
-//        {
-//            items[i] = i;
-//        }
-//        stopwatch.reset();
-//        stopwatch.start();
-//        size_t count = 0;
-//        DumpPermutations<int> permGen(std::set<int>(items.begin(), items.end()));
-//        do
-//        {
-//            const std::vector<int> &perm = permGen.get_current_permutation();
-//            ++count;
-//            //print_permutation(perm);
-//        } while (permGen.next_permutation());
-//        stopwatch.stop();
-//        fprintf(stdout, "Permutation of size %i, generated %lu permutations in : took %.5f ms\n",
-//                permutationSize,
-//                count,
-//                stopwatch.elapsed_milliseconds());
-//    }
+
     return 0;
 }

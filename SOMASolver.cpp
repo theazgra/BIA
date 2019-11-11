@@ -67,9 +67,10 @@ SOMAResult SOMASolver::solve()
     Individual leader = find_leader(m_currentPopulation);
     for (size_t migration = 0; migration < m_migrations; ++migration)
     {
-        result.invidualsInTime[migration] = azgra::collection::select(m_currentPopulation.begin(), m_currentPopulation.end(), [](const
-        Individual &individual)
-        { return individual.attributes; });
+        result.invidualsInTime[migration] = azgra::collection::select(
+                m_currentPopulation.begin(), m_currentPopulation.end(),
+                [](const Individual &individual)
+                { return individual.attributes; });
 
 
         std::vector<Individual> nextPopulation(m_populationSize);
@@ -97,7 +98,7 @@ SOMAResult SOMASolver::solve()
         avgFitness = average_fitness();
         //fprintf(stdout, "\rMigration %lu/%lu average cost: %.5f Leader cost: %.5f", migration + 1, m_migrations, avgFitness, leader.fitness);
         fprintf(stdout, "Migration %lu/%lu average cost: %.5f Leader cost: %.5f\n", migration + 1, m_migrations, avgFitness, leader
-        .fitness);
+                .fitness);
     }
     fprintf(stdout, "\rMigration %lu/%lu average cost: %.5f Leader cost: %.5f", m_migrations, m_migrations, avgFitness, leader.fitness);
     result.result = leader.fitness;
