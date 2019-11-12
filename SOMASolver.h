@@ -13,7 +13,7 @@ struct Individual
     f64 fitness = std::numeric_limits<f64>::max();
 };
 
-struct SOMAResult
+struct OptimizationResult
 {
     std::vector<std::vector<std::vector<f64>>> invidualsInTime;
     f64 result;
@@ -57,5 +57,5 @@ public:
 
     void edit_parameters(const f64 pathLen, const f64 step, const f64 prt, const f64 minDiv);
 
-    SOMAResult solve();
+    OptimizationResult solve();
 };

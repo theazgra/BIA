@@ -55,11 +55,10 @@ Individual SOMASolver::generate_random_individual()
     return individual;
 }
 
-SOMAResult SOMASolver::solve()
+OptimizationResult SOMASolver::solve()
 {
-    SOMAResult result = {};
+    OptimizationResult result = {};
     result.invidualsInTime.resize(m_migrations);
-    //TODO (Moravec): Record population history!.
     initialize_population();
     calculate_fitness_for_population(m_currentPopulation);
     f64 avgFitness = average_fitness();

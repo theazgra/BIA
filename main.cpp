@@ -5,7 +5,7 @@
 #include "DumpPermutations.h"
 #include <azgra/utilities/Stopwatch.h>
 #include <azgra/collection/vector_utilities.h>
-#include "SOMASolver.h"
+#include "PSOSolver.h"
 #include <azgra/geometry/plot.h>
 
 static void draw_cities(const tsp::TspSolution &solution,
@@ -47,16 +47,20 @@ static void draw_cities(const tsp::TspSolution &solution,
 #endif
 }
 
-std::vector<std::vector<azgra::geometry::Point3D<f64>>> soma_individuals_to_points(const SOMAResult &somaResult)
+std::vector<std::vector<azgra::geometry::Point3D<f64>>>
+individuals_to_points(const OptimizationResult &result,
+                      const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn)
 {
-    std::vector<std::vector<azgra::geometry::Point3D<f64>>> points(somaResult.invidualsInTime.size());
-    for (size_t i = 0; i < somaResult.invidualsInTime.size(); ++i)
+
+    std::vector<std::vector<azgra::geometry::Point3D<f64>>> points(result.invidualsInTime.size());
+    for (size_t i = 0; i < result.invidualsInTime.size(); ++i)
     {
-        const auto &migration = somaResult.invidualsInTime[i];
+        const auto &migration = result.invidualsInTime[i];
+        always_assert(migration[0].size() == 2);
         std::vector<azgra::geometry::Point3D<f64>> migrationPoints(migration.size());
         for (size_t j = 0; j < migration.size(); ++j)
         {
-            migrationPoints[j] = azgra::geometry::Point3D<f64>(migration[j][0], migration[j][1], migration[j][2]);
+            migrationPoints[j] = azgra::geometry::Point3D<f64>(migration[j][0], migration[j][1], fn(migration[j]));
         }
         points[i] = migrationPoints;
     }
@@ -76,16 +80,21 @@ static void print_permutation(const std::vector<int> &permutation)
 
 int main(int argc, char **argv)
 {
-    const size_t dimension = 3;
-    //optimalization::OptimalizationProblem problem(griewank, 1, dimension, generate_limits(dimension, -600, 600));
-    //optimalization::OptimalizationProblem problem(griewank, 1, dimension, generate_limits(dimension, -600, 600));
+    const size_t dimension = 2;
+
     optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));
     optimalization::OptimalizationProblem schwefelProb(schwefel, 1, dimension, generate_limits(dimension, -500.0, 500.0));
-    SOMASolver soma(schwefelProb, 100, 10);
-    //soma.edit_parameters(2.1, 0.21, 0.8, 0.01);
-    auto solution = soma.solve();
-    auto points3d = soma_individuals_to_points(solution);
-    azgra::geometry::dump_3d_points_history(points3d, "schwefel.pts");
+
+//    SOMASolver soma(schwefelProb, 50, 50);
+//    auto solution = soma.solve();
+//    auto points3d = soma_individuals_to_points(solution,schwefel);
+
+    PSOSolver psoSolver(schwefelProb, 50, 50);
+    auto solution = psoSolver.solve();
+    auto points3d = individuals_to_points(solution, schwefel);
+
+
+    azgra::geometry::dump_3d_points_history(points3d, "pso_schwefel.pts");
     fprintf(stdout, "done\n");
 
     return 0;
