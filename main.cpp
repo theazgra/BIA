@@ -92,8 +92,6 @@ int main(int argc, char **argv)
     PSOSolver psoSolver(schwefelProb, 50, 50);
     auto solution = psoSolver.solve();
     auto points3d = individuals_to_points(solution, schwefel);
-
-
     azgra::geometry::dump_3d_points_history(points3d, "pso_schwefel.pts");
     fprintf(stdout, "done\n");
 

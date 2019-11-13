@@ -11,19 +11,19 @@ PSOSolver::PSOSolver(const optimalization::OptimalizationProblem &problem, const
     m_generator = std::mt19937(m_rd());
     m_01rand = std::uniform_real_distribution<f64>(0.0, 1.0);
 
+    m_inDimensionRandom.resize(m_dimension);
     m_vMax.resize(m_dimension);
-    m_dimensionSize.resize(m_dimension);
     for (size_t dim = 0; dim < m_dimension; ++dim)
     {
         const f64 dimMin = m_dimensionLimits[dim].min;
         const f64 dimMax = m_dimensionLimits[dim].max;
         const f64 dimensionSize = dimMin < 0 ? (dimMax + abs(dimMin)) : dimMax - dimMin;
-        m_dimensionSize[dim] = dimensionSize;
+        m_inDimensionRandom[dim] = std::uniform_real_distribution<f64>(dimMin, dimMax);
         m_vMax[dim] = dimensionSize / 20.0;
     }
 }
 
-void PSOSolver::set_gBest(const std::vector<PSOIndividual> &particles)
+void PSOSolver::init_gBest(const std::vector<PSOParticle> &particles)
 {
     f64 min = std::numeric_limits<f64>::max();
     for (const auto &particle : particles)
@@ -36,21 +36,21 @@ void PSOSolver::set_gBest(const std::vector<PSOIndividual> &particles)
     }
 }
 
-PSOIndividual PSOSolver::generate_random_individual()
+PSOParticle PSOSolver::generate_random_individual()
 {
-    PSOIndividual particle = {};
+    PSOParticle particle = {};
     particle.attributes.resize(m_dimension);
     particle.velocity.resize(m_dimension);
+
     for (size_t dim = 0; dim < m_dimension; ++dim)
     {
-        const f64 dimMin = m_dimensionLimits[dim].min;
-        const f64 dimMax = m_dimensionLimits[dim].max;
-        const f64 dimensionSize = dimMin < 0 ? (dimMax + abs(dimMin)) : dimMax - dimMin;
+        particle.attributes[dim] = m_dimensionLimits[dim].min +
+                                   (m_01rand(m_generator) * (m_dimensionLimits[dim].max - m_dimensionLimits[dim].min));
+        particle.velocity[dim] = 0;
 
-        particle.attributes[dim] = dimMin + (m_01rand(m_generator) * (dimMax - dimMin));
-        particle.velocity[dim] = 0; //= (m_01rand(m_generator) * (dimensionSize / 25.0));
-        particle.pBest = particle.attributes;
         particle.fitness = m_fitnessFunction(particle.attributes);
+
+        particle.pBest = particle.attributes;
         particle.pBestFitness = particle.fitness;
     }
     return particle;
@@ -67,12 +67,20 @@ void PSOSolver::initialize_population()
 
 f64 PSOSolver::average_fitness() const
 {
-    f64 result = 0.0;
-    for (const auto &particle : m_particles)
-    {
-        result += particle.fitness;
-    }
-    result /= static_cast<f64>(m_particleCount);
+    auto sum = azgra::collection::sum(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
+    { return particle.fitness; });
+
+    f64 result = sum / static_cast<f64>(m_particleCount);
+    return result;
+}
+
+
+f64 PSOSolver::average_p_best_fitness() const
+{
+    auto sum = azgra::collection::sum(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
+    { return particle.pBestFitness; });
+
+    f64 result = sum / static_cast<f64>(m_particleCount);
     return result;
 }
 
@@ -81,52 +89,56 @@ OptimizationResult PSOSolver::solve()
     OptimizationResult result = {};
     result.invidualsInTime.resize(m_iterationCount);
     initialize_population();
+
     f64 avgFitness = average_fitness();
     fprintf(stdout, "Initial average cost: %.5f\n", avgFitness);
 
-    set_gBest(m_particles);
+    init_gBest(m_particles);
 
     for (size_t iteration = 0; iteration < m_iterationCount; ++iteration)
     {
         result.invidualsInTime[iteration] = azgra::collection::select(
                 m_particles.begin(), m_particles.end(),
-                [](const PSOIndividual &individual)
+                [](const PSOParticle &individual)
                 { return individual.attributes; });
 
-        for (PSOIndividual &particle : m_particles)
+        for (PSOParticle &particle : m_particles)
         {
             update_particle(particle);
         }
         avgFitness = average_fitness();
-        fprintf(stdout, "Iteration %lu/%lu average cost: %.5f gBest cost: %.5f\n", iteration + 1, m_iterationCount, avgFitness,
-                m_gBest.fitness);
+        double avgPBEstFitness = average_fitness();
+//        fprintf(stdout, "Iteration %lu/%lu average cost: %.5f avg. pBest cost: %.5f gBest cost: %.5f\n",
+//                iteration + 1,
+//                m_iterationCount,
+//                avgFitness,
+//                avgPBEstFitness,
+//                m_gBest.fitness);
 
     }
-    fprintf(stdout, "Iteration %lu/%lu average cost: %.5f gBest cost: %.5f\n", m_iterationCount, m_iterationCount, avgFitness,
+    fprintf(stdout, "Iteration %lu/%lu average cost: %.5f gBest cost: %.5f\n",
+            m_iterationCount,
+            m_iterationCount,
+            avgFitness,
             m_gBest.fitness);
     result.result = m_gBest.fitness;
     return result;
 }
 
 
-void PSOSolver::update_particle(PSOIndividual &particle)
+void PSOSolver::update_particle(PSOParticle &particle)
 {
-    std::vector<f64> newVelocity(particle.velocity.size());
-    for (size_t dim = 0; dim < particle.velocity.size(); ++dim)
+    std::vector<f64> newVelocity(m_dimension);
+    for (size_t dim = 0; dim < m_dimension; ++dim)
     {
         newVelocity[dim] = particle.velocity[dim] +
                            (m_c1 * m_01rand(m_generator) * (particle.pBest[dim] - particle.attributes[dim])) +
                            (m_c2 * m_01rand(m_generator) * (m_gBest.attributes[dim] - particle.attributes[dim]));
 
-        // TODO(Moravec): If newVelocity[dim] > VMAX -> Regenerate velocity in bounds, Random in bounds.
-
-        while (newVelocity[dim] > m_vMax[dim])
+        if (abs(newVelocity[dim]) > m_vMax[dim])
         {
-            newVelocity[dim] *= 0.5;
-            //fprintf(stdout,"velocity outside bounds\n");
+            newVelocity[dim] = m_inDimensionRandom[dim](m_generator);
         }
-
-
     }
     particle.velocity = std::move(newVelocity);
 
@@ -134,20 +146,33 @@ void PSOSolver::update_particle(PSOIndividual &particle)
     {
         particle.attributes[dim] = particle.attributes[dim] + particle.velocity[dim];
 
-        // TODO(Moravec): If particle.attributes[dim] > dimensionLimits[dim].max --> regenerate value in given dimension
-        // TODO(Moravec): If particle.attributes[dim] < dimensionLimits[dim].min --> regenerate value in given dimension
+#if 0
+        if (particle.attributes[dim] < m_dimensionLimits[dim].min)
+        {
+            particle.attributes[dim] = m_dimensionLimits[dim].min;
+        }
+        else if (particle.attributes[dim] > m_dimensionLimits[dim].max)
+        {
+            particle.attributes[dim] = m_dimensionLimits[dim].max;
+        }
+#else
+        if ((particle.attributes[dim] < m_dimensionLimits[dim].min) || (particle.attributes[dim] > m_dimensionLimits[dim].max))
+        {
+            particle.attributes[dim] = m_inDimensionRandom[dim](m_generator);
+        }
+#endif
     }
-    const f64 newFitness = m_fitnessFunction(particle.attributes);
-    particle.fitness = newFitness;
+    particle.fitness = m_fitnessFunction(particle.attributes);
 
-    if (newFitness < particle.pBestFitness)
+    if (particle.fitness < particle.pBestFitness)
     {
-        particle.pBestFitness = newFitness;
+        particle.pBestFitness = particle.fitness;
         particle.pBest = particle.attributes;
 
-        if (newFitness < m_gBest.fitness)
+        if (particle.fitness < m_gBest.fitness)
         {
             m_gBest = particle;
         }
     }
 }
+
