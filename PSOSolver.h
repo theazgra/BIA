@@ -23,7 +23,9 @@ class PSOSolver
 
     std::vector<f64> m_vMax;
     std::vector<Limits> m_dimensionLimits;
-    std::vector<std::uniform_real_distribution<f64>> m_inDimensionRandom;
+
+    std::vector<std::uniform_real_distribution<f64>> m_randomAttribute;
+    std::vector<std::uniform_real_distribution<f64>> m_randomVelocity;
     std::function<f64(const std::vector<f64> &)> m_fitnessFunction;
 
     std::random_device m_rd;
@@ -33,7 +35,7 @@ class PSOSolver
 
     PSOParticle m_gBest;
 
-    PSOParticle generate_random_individual();
+    PSOParticle generate_random_particle();
 
     void initialize_population();
 
@@ -44,8 +46,12 @@ class PSOSolver
 
     void update_particle(PSOParticle &particle);
 
-    f64 m_c1 = 2.0;
-    f64 m_c2 = 2.0;
+    f64 m_cPBest = 0.5;
+    f64 m_cGBest = 0.5;
+
+    f64 m_wStart = 0.9;
+    f64 m_wEnd = 0.4;
+    f64 m_w = m_wStart;
 
 public:
     PSOSolver(const optimalization::OptimalizationProblem &problem,

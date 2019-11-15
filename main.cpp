@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 //    auto solution = soma.solve();
 //    auto points3d = soma_individuals_to_points(solution,schwefel);
 
-    PSOSolver psoSolver(schwefelProb, 50, 50);
+    PSOSolver psoSolver(schwefelProb, 25, 1500);
     auto solution = psoSolver.solve();
     auto points3d = individuals_to_points(solution, schwefel);
     azgra::geometry::dump_3d_points_history(points3d, "pso_schwefel.pts");

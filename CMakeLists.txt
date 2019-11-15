@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(AzgraCppLibrary)
 
-add_executable(bia main.cpp optimalization_functions.cpp optimalization_functions_vis.cpp search_algorithms.cpp tsp.cpp DumpPermutations.h
+add_executable(bia main.cpp optimalization_functions.cpp optimalization_functions_vis.cpp
+        search_algorithms.cpp tsp.cpp DumpPermutations.h
         SOMASolver.cpp PSOSolver.cpp)
 
 target_link_libraries(bia sub::azgra)
