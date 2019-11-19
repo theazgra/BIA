@@ -18,6 +18,8 @@ namespace tsp
 
     using namespace azgra;
 
+    [[nodiscard]] std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 maxX, f64 maxY);
+
     class TspSolver
     {
     private:
@@ -49,8 +51,6 @@ namespace tsp
         [[nodiscard]] f64 current_population_average_distance() const;
 
         [[nodiscard]] std::vector<size_t> get_best_from_population() const;
-
-        [[nodiscard]] std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 maxX, f64 maxY) const;
 
     public:
         explicit TspSolver(std::vector<geometry::Point2D<f64>> cities, size_t populationSize);

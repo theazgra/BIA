@@ -1,9 +1,8 @@
 #include <iostream>
 #include "optimalization_functions_vis.h"
 #include <azgra/cli/cli_arguments.h>
-#include "tsp.h"
+#include "AntColony.h"
 #include "DumpPermutations.h"
-#include <azgra/utilities/Stopwatch.h>
 #include <azgra/collection/vector_utilities.h>
 #include "PSOSolver.h"
 #include <azgra/geometry/plot.h>
@@ -80,21 +79,24 @@ static void print_permutation(const std::vector<int> &permutation)
 
 int main(int argc, char **argv)
 {
-    const size_t dimension = 2;
-
-    optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));
-    optimalization::OptimalizationProblem schwefelProb(schwefel, 1, dimension, generate_limits(dimension, -500.0, 500.0));
-
-//    SOMASolver soma(schwefelProb, 50, 50);
-//    auto solution = soma.solve();
-//    auto points3d = soma_individuals_to_points(solution,schwefel);
-
-    //PSOSolver psoSolver(schwefelProb, 25, 1500);
-    PSOSolver psoSolver(ackleyProb, 25, 100);
-    auto solution = psoSolver.solve();
-    auto points3d = individuals_to_points(solution, ackley_simple);
-    azgra::geometry::dump_3d_points_history(points3d, "pso_ackley.pts");
-    fprintf(stdout, "done\n");
+    auto cities = tsp::generate_random_cities(6, 100, 100);
+    AntColony antHill(cities, 5, 1.0, 2.0, 0.75, 100);
+    auto solution = antHill.solve();
+//    const size_t dimension = 2;
+//
+//    optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));
+//    optimalization::OptimalizationProblem schwefelProb(schwefel, 1, dimension, generate_limits(dimension, -500.0, 500.0));
+//
+////    SOMASolver soma(schwefelProb, 50, 50);
+////    auto solution = soma.solve();
+////    auto points3d = soma_individuals_to_points(solution,schwefel);
+//
+//    //PSOSolver psoSolver(schwefelProb, 25, 1500);
+//    PSOSolver psoSolver(ackleyProb, 25, 100);
+//    auto solution = psoSolver.solve();
+//    auto points3d = individuals_to_points(solution, ackley_simple);
+//    azgra::geometry::dump_3d_points_history(points3d, "pso_ackley.pts");
+//    fprintf(stdout, "done\n");
 
     return 0;
 }

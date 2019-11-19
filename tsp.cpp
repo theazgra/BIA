@@ -4,7 +4,7 @@
 
 namespace tsp
 {
-    std::vector<azgra::geometry::Point2D<f64>> TspSolver::generate_random_cities(size_t cityCount, f64 maxX, f64 maxY) const
+    std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 maxX, f64 maxY)
     {
         f64 radius = 20.0;
         geometry::Point2D<f64> center(500, 500);
@@ -20,11 +20,6 @@ namespace tsp
 
             angle += angleStep;
         }
-
-//        geometry::Plot circle("Circle");
-//        for (size_t i = 0; i < cityCount; ++i)
-//            circle.add_2d_point(cities[i]);
-//        circle.display_window();
 
         return cities;
     }
