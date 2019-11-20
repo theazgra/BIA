@@ -42,7 +42,7 @@ static void draw_cities(const tsp::TspSolution &solution,
         }
         linesInTime.push_back(time);
     }
-    Plot::animate_lines(linesInTime, 0.01, 5);
+    Plot::animate_lines(linesInTime, 0.5, 1);
 #endif
 }
 
@@ -79,9 +79,10 @@ static void print_permutation(const std::vector<int> &permutation)
 
 int main(int argc, char **argv)
 {
-    auto cities = tsp::generate_random_cities(6, 100, 100);
-    AntColony antHill(cities, 5, 1.0, 2.0, 0.75, 100);
+    auto cities = tsp::generate_random_cities(100, 200);
+    AntColony antHill(cities, 5, 1.0, 2.0, 0.5, 30);
     auto solution = antHill.solve();
+    draw_cities(solution, cities);
 //    const size_t dimension = 2;
 //
 //    optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));

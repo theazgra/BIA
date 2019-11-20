@@ -4,9 +4,8 @@
 
 namespace tsp
 {
-    std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 maxX, f64 maxY)
+    std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 radius)
     {
-        f64 radius = 20.0;
         geometry::Point2D<f64> center(500, 500);
         std::vector<azgra::geometry::Point2D<f64>> cities(cityCount);
         f64 x, y;
@@ -34,7 +33,7 @@ namespace tsp
     }
 
     TspSolver::TspSolver(const size_t cityCout, const f64 maxX, const f64 maxY, size_t populationSize) :
-            TspSolver(generate_random_cities(cityCout, maxX, maxY), populationSize)
+            TspSolver(generate_random_cities(cityCout), populationSize)
     {
     }
 

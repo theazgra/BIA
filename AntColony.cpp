@@ -7,7 +7,7 @@ AntColony::AntColony(std::vector<geometry::Point2D<f64>> &cities, size_t antCoun
                      const f64 distanceImportance, const f64 evaporationRate, const size_t iterationCount)
 {
 
-    m_cities = std::move(cities);
+    m_cities = std::vector<geometry::Point2D<f64>>(cities);
     m_antCount = antCount;
     m_pheromoneImportance = pheromoneImportance;
     m_distanceImportance = distanceImportance;
@@ -36,20 +36,21 @@ void AntColony::ant_navigation(Ant &ant)
 {
     while (ant.path.size() != m_cityCount)
     {
-        std::vector<f64> cityWeights;
-        cityWeights.reserve(ant.unvisitedCities.size());
-        for (const CityId &unvisited : ant.unvisitedCities)
+        std::vector<f64> cityWeights(ant.unvisitedCities.size());
+        for (size_t i = 0; i < ant.unvisitedCities.size(); ++i)
         {
-            const f64 numerator = pow(m_pheromoneMatrix.at(ant.currentCity, unvisited), m_pheromoneImportance) *
-                                  pow((1.0 / m_distanceMatrix.at(ant.currentCity, unvisited)), m_distanceImportance);
+            const f64 numerator = pow(m_pheromoneMatrix.at(ant.currentCity, ant.unvisitedCities[i]), m_pheromoneImportance) *
+                                  pow((1.0 / m_distanceMatrix.at(ant.currentCity, ant.unvisitedCities[i])), m_distanceImportance);
 
-            cityWeights.push_back(numerator);
+            cityWeights[i] = numerator;
         }
+
         const f64 totalWeight = std::accumulate(cityWeights.begin(), cityWeights.end(), 0.0);
         for (f64 &cityWeight : cityWeights)
         {
             cityWeight /= totalWeight;
         }
+
         std::discrete_distribution<size_t> randomCity(cityWeights.begin(), cityWeights.end());
         CityId cityIndex = ant.unvisitedCities[randomCity(m_generator)];
         ant.unvisitedCities.erase(ant.unvisitedCities.begin() + azgra::collection::get_index(ant.unvisitedCities, cityIndex));
@@ -83,6 +84,17 @@ void AntColony::initialize_ants()
     }
 }
 
+void AntColony::reset_ants()
+{
+    const auto allCities = Enumerable<CityId>::range(1, m_cityCount).to_vector();
+    for (Ant &ant : m_ants)
+    {
+        ant.currentCity = 0;
+        ant.path.resize(1);
+        ant.path[0] = 0;
+        ant.unvisitedCities = std::vector<CityId>(allCities.begin(), allCities.end());
+    }
+}
 
 tsp::TspSolution AntColony::solve()
 {
@@ -98,9 +110,54 @@ tsp::TspSolution AntColony::solve()
         {
             ant_navigation(ant);
         }
+        update_pheromone_matrix();
+        const auto antony = get_best_ant();
+        reset_ants();
+        fprintf(stdout, "Finished iteration %lu best cost: %.4f\n", it, antony.pathCost);
+
+        solution.solutionHistory.push_back(antony.path);
+        solution.bestSolution = antony.path;
     }
 
     return solution;
+}
+
+void AntColony::update_pheromone_matrix()
+{
+    // Vaporization
+    for (size_t row = 0; row < m_pheromoneMatrix.rows(); ++row)
+    {
+        for (size_t col = 0; col < m_pheromoneMatrix.cols(); ++col)
+        {
+            m_pheromoneMatrix.at(row, col) = m_pheromoneMatrix.at(row, col) * m_evaporationRate;
+        }
+    }
+
+    // Add ants pheromones
+    for (const Ant &ant : m_ants)
+    {
+        for (size_t fromCityIndex = 0; fromCityIndex < m_cityCount; ++fromCityIndex)
+        {
+            const CityId fromCity = ant.path[fromCityIndex];
+            const CityId toCity = ant.path[((fromCityIndex + 1) % m_cityCount)];
+            m_pheromoneMatrix.at(fromCity, toCity) += (1.0 / ant.pathCost);
+        }
+    }
+}
+
+Ant AntColony::get_best_ant() const
+{
+    f64 min = std::numeric_limits<f64>::max();
+    Ant bestAntony = {};
+    for (const Ant &ant : m_ants)
+    {
+        if (ant.pathCost < min)
+        {
+            min = ant.pathCost;
+            bestAntony = ant;
+        }
+    }
+    return bestAntony;
 }
 
 

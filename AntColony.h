@@ -36,6 +36,9 @@ private:
     void ant_navigation(Ant &ant);
     f64 ant_path_cost(const std::vector<CityId > &cities) const;
     void initialize_ants();
+    void reset_ants();
+    void update_pheromone_matrix();
+    Ant get_best_ant() const;
 public:
 
     explicit AntColony(std::vector<geometry::Point2D<f64>> &cities, size_t antCount,
