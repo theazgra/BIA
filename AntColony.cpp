@@ -73,26 +73,28 @@ f64 AntColony::ant_path_cost(const std::vector<CityId> &cities) const
 
 void AntColony::initialize_ants()
 {
+    std::uniform_int_distribution<CityId> rndInitialCity(0, m_cityCount);
     m_ants.resize(m_antCount);
-    const auto allCities = Enumerable<CityId>::range(1, m_cityCount).to_vector();
+
     for (Ant &ant : m_ants)
     {
-        ant.currentCity = 0;
-        ant.path.push_back(0);
-        ant.unvisitedCities = std::vector<CityId>(allCities.begin(), allCities.end());
+        const CityId initialCity = rndInitialCity(m_generator);
+        ant.initialCity = initialCity;
+        ant.currentCity = initialCity;
+        ant.path.push_back(initialCity);
+        ant.unvisitedCities = Enumerable<CityId>::range(0, m_cityCount).except({initialCity}).to_vector();
         ant.pathCost = std::numeric_limits<f64>::max();
     }
 }
 
 void AntColony::reset_ants()
 {
-    const auto allCities = Enumerable<CityId>::range(1, m_cityCount).to_vector();
     for (Ant &ant : m_ants)
     {
-        ant.currentCity = 0;
         ant.path.resize(1);
-        ant.path[0] = 0;
-        ant.unvisitedCities = std::vector<CityId>(allCities.begin(), allCities.end());
+        ant.currentCity = ant.initialCity;
+        always_assert(ant.path[0] == ant.initialCity);
+        ant.unvisitedCities = Enumerable<CityId>::range(0, m_cityCount).except({ant.initialCity}).to_vector();
     }
 }
 
