@@ -18,7 +18,9 @@ namespace tsp
 
     using namespace azgra;
 
-    [[nodiscard]] std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 radius = 20.0);
+    [[nodiscard]] std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount,
+                                                                                    const bool generateOnCircle,
+                                                                                    f64 radius = 200);
 
     class TspSolver
     {

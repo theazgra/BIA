@@ -79,7 +79,7 @@ static void print_permutation(const std::vector<int> &permutation)
 
 int main(int argc, char **argv)
 {
-    auto cities = tsp::generate_random_cities(100, 200);
+    auto cities = tsp::generate_random_cities(100, true, 200);
     AntColony antHill(cities, 5, 1.0, 2.0, 0.5, 30);
     auto solution = antHill.solve();
     draw_cities(solution, cities);

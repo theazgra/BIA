@@ -4,18 +4,22 @@
 
 namespace tsp
 {
-    std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, f64 radius)
+    std::vector<azgra::geometry::Point2D<f64>> generate_random_cities(size_t cityCount, const bool generateOnCircle, f64 radius)
     {
-        geometry::Point2D<f64> center(500, 500);
+        geometry::Point2D<f64> center(radius / 2, radius / 2);
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        std::uniform_real_distribution<f64> rGen(0.0, radius);
         std::vector<azgra::geometry::Point2D<f64>> cities(cityCount);
         f64 x, y;
         f64 angleStep = (2.0 * M_PI) / cityCount;
         f64 angle = 0;
         for (size_t i = 0; i < cityCount; ++i)
         {
-            x = center.x + (radius * cos(angle));
-            y = center.y + (radius * sin(angle));
-            cities[i] = azgra::geometry::Point2D<f64>(x, y);
+            x = generateOnCircle ? (center.x + (radius * cos(angle))) : rGen(mt);
+            y = generateOnCircle ? (center.y + (radius * sin(angle))) : rGen(mt);
+
+            cities[i] = {x, y};
 
             angle += angleStep;
         }
@@ -33,7 +37,7 @@ namespace tsp
     }
 
     TspSolver::TspSolver(const size_t cityCout, const f64 maxX, const f64 maxY, size_t populationSize) :
-            TspSolver(generate_random_cities(cityCout), populationSize)
+            TspSolver(generate_random_cities(cityCout, true), populationSize)
     {
     }
 
