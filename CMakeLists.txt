@@ -8,7 +8,9 @@ add_subdirectory(AzgraCppLibrary)
 
 add_executable(bia main.cpp optimalization_functions.cpp optimalization_functions_vis.cpp
         search_algorithms.cpp tsp.cpp DumpPermutations.h
-        SOMASolver.cpp PSOSolver.cpp AntColony.cpp)
+        SOMASolver.cpp PSOSolver.cpp AntColony.cpp
+        Solver.cpp
+        FireflySolver.cpp)
 
 target_link_libraries(bia sub::azgra)
 set_property(TARGET bia PROPERTY CXX_STANDARD 17)

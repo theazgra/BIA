@@ -1,12 +1,11 @@
 #include <iostream>
 #include "optimalization_functions_vis.h"
 #include <azgra/cli/cli_arguments.h>
-#include "AntColony.h"
-#include "DumpPermutations.h"
 #include <azgra/collection/vector_utilities.h>
-#include "PSOSolver.h"
 #include <azgra/geometry/plot.h>
+#include "FireflySolver.h"
 
+#if 0
 static void draw_cities(const tsp::TspSolution &solution,
                         const std::vector<azgra::geometry::Point2D<f64>> &points)
 {
@@ -42,10 +41,10 @@ static void draw_cities(const tsp::TspSolution &solution,
         }
         linesInTime.push_back(time);
     }
-    Plot::animate_lines(linesInTime, 0.5, 1);
+    Plot::animate_lines(linesInTime, 0.2, 1);
 #endif
 }
-
+#endif
 std::vector<std::vector<azgra::geometry::Point3D<f64>>>
 individuals_to_points(const OptimizationResult &result,
                       const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn)
@@ -79,14 +78,18 @@ static void print_permutation(const std::vector<int> &permutation)
 
 int main(int argc, char **argv)
 {
-    auto cities = tsp::generate_random_cities(100, true, 200);
-    AntColony antHill(cities, 5, 1.0, 2.0, 0.5, 30);
-    auto solution = antHill.solve();
-    draw_cities(solution, cities);
-//    const size_t dimension = 2;
-//
-//    optimalization::OptimalizationProblem ackleyProb(ackley_simple, 1, dimension, generate_limits(dimension, -32.0, 32.0));
-//    optimalization::OptimalizationProblem schwefelProb(schwefel, 1, dimension, generate_limits(dimension, -500.0, 500.0));
+//    auto cities = tsp::generate_random_cities(100, true, 200);
+//    AntColony antHill(cities, 5, 1.0, 2.0, 0.5, 30);
+//    auto solution = antHill.solve();
+//    draw_cities(solution, cities);
+    const size_t dimension = 2;
+    OptimalizationProblem ackleyProb(ackley_simple, 100, dimension, generate_limits(dimension, -32.0, 32.0));
+    OptimalizationProblem schwefelProb(schwefel, 1000, dimension, generate_limits(dimension, -500.0, 500.0));
+
+    FireflySolver fireflySolver(schwefelProb, 40);
+    const auto solution = fireflySolver.solve();
+    auto points3d = individuals_to_points(solution, schwefel);
+    azgra::geometry::dump_3d_points_history(points3d, "firefly_schwefel.pts");
 //
 ////    SOMASolver soma(schwefelProb, 50, 50);
 ////    auto solution = soma.solve();
@@ -95,8 +98,7 @@ int main(int argc, char **argv)
 //    //PSOSolver psoSolver(schwefelProb, 25, 1500);
 //    PSOSolver psoSolver(ackleyProb, 25, 100);
 //    auto solution = psoSolver.solve();
-//    auto points3d = individuals_to_points(solution, ackley_simple);
-//    azgra::geometry::dump_3d_points_history(points3d, "pso_ackley.pts");
+
 //    fprintf(stdout, "done\n");
 
     return 0;

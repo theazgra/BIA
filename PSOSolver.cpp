@@ -1,6 +1,6 @@
 #include "PSOSolver.h"
 
-PSOSolver::PSOSolver(const optimalization::OptimalizationProblem &problem, const size_t particleCount, const size_t iterationCount)
+PSOSolver::PSOSolver(const OptimalizationProblem &problem, const size_t particleCount, const size_t iterationCount)
 {
     m_dimension = problem.dimensionCount;
     m_dimensionLimits = problem.dimensionLimits;

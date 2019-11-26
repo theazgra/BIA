@@ -1,23 +1,13 @@
 #pragma once
 
 #include "search_algorithms.h"
+#include "Individual.h"
 #include <azgra/collection/enumerable.h>
 
 
 using namespace azgra;
 using namespace optimalization;
 
-struct Individual
-{
-    std::vector<f64> attributes;
-    f64 fitness = std::numeric_limits<f64>::max();
-};
-
-struct OptimizationResult
-{
-    std::vector<std::vector<std::vector<f64>>> invidualsInTime;
-    f64 result;
-};
 
 class SOMASolver
 {
@@ -51,7 +41,7 @@ private:
     f64 average_fitness() const;
 
 public:
-    SOMASolver(const optimalization::OptimalizationProblem &problem,
+    SOMASolver(const OptimalizationProblem &problem,
                const size_t populationSize,
                const size_t migrationCount);
 

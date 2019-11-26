@@ -243,15 +243,7 @@ namespace optimalization
         return result;
     }
 
-    std::vector<Limits> generate_limits(const size_t dimension, const f64 min, const f64 max)
-    {
-        std::vector<Limits> limits(dimension);
-        for (size_t dim = 0; dim < dimension; ++dim)
-        {
-            limits[dim] = Limits(min, max);
-        }
-        return limits;
-    }
+
 
     void HillClimbingConfig::set_probem(OptimalizationProblem problem)
     {

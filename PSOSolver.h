@@ -54,7 +54,7 @@ class PSOSolver
     f64 m_w = m_wStart;
 
 public:
-    PSOSolver(const optimalization::OptimalizationProblem &problem,
+    PSOSolver(const OptimalizationProblem &problem,
               const size_t particleCount,
               const size_t iterationCount);
 

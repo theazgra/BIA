@@ -5,6 +5,7 @@
 #include <random>
 #include <azgra/geometry/point.h>
 #include "optimalization_functions.h"
+#include "Problem.h"
 
 namespace optimalization
 {
@@ -23,19 +24,6 @@ namespace optimalization
         fprintf(stdout, "]\n");
     }
 
-    struct Limits
-    {
-        azgra::f64 min;
-        azgra::f64 max;
-
-        Limits() = default;
-
-        explicit Limits(const azgra::f64 _min, const azgra::f64 _max) : min(_min), max(_max)
-        {}
-    };
-
-    std::vector<Limits> generate_limits(const size_t dimension, const f64 min, const f64 max);
-
     struct SearchAlgorithmResult
     {
         std::vector<azgra::f64> bestSolution;
@@ -44,22 +32,6 @@ namespace optimalization
         std::vector<azgra::geometry::Point2D<double>> bestSolutionValueHistoryFor2D;
     };
 
-    struct OptimalizationProblem
-    {
-        std::function<azgra::f64(const std::vector<azgra::f64> &)> testFunction;
-        size_t iterationCount;
-        size_t dimensionCount;
-        std::vector<Limits> dimensionLimits;
-
-        OptimalizationProblem() = default;
-
-        OptimalizationProblem(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn,
-                              const size_t itCount,
-                              const size_t dimCount,
-                              const std::vector<Limits> &limits)
-                : testFunction(fn), iterationCount(itCount), dimensionCount(dimCount), dimensionLimits(limits)
-        {}
-    };
 
     struct HillClimbingConfig : OptimalizationProblem
     {
