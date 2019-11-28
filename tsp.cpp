@@ -217,7 +217,7 @@ namespace tsp
 #if DEBUG
             geneHistory.push_back(gene);
 #endif
-            while (collection::contains(offspring, gene))
+            while (collection::contains(offspring.begin(), offspring.end(), gene))
             {
                 gene = m_currentPopulation[parentB][parentBGeneIndex++];
             }

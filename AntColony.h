@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tsp.h"
+#include <azgra/collection/vector_linq.h>
 #include <azgra/collection/enumerable.h>
 #include <bits/unordered_set.h>
 #include <random>

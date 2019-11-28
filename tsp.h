@@ -3,7 +3,7 @@
 #include <random>
 #include <azgra/matrix.h>
 #include <azgra/geometry/point.h>
-#include <azgra/collection/vector_linq.h>
+#include <azgra/collection/enumerable_functions.h>
 #include <algorithm>
 #include <azgra/geometry/plot.h>
 

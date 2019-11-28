@@ -1,9 +1,8 @@
 #include <iostream>
-#include "optimalization_functions_vis.h"
-#include <azgra/cli/cli_arguments.h>
-#include <azgra/collection/vector_utilities.h>
 #include <azgra/geometry/plot.h>
 #include "FireflySolver.h"
+#include "TLBOSolver.h"
+#include "optimalization_functions.h"
 
 #if 0
 static void draw_cities(const tsp::TspSolution &solution,
@@ -86,10 +85,13 @@ int main(int argc, char **argv)
     OptimalizationProblem ackleyProb(ackley_simple, 100, dimension, generate_limits(dimension, -32.0, 32.0));
     OptimalizationProblem schwefelProb(schwefel, 1000, dimension, generate_limits(dimension, -500.0, 500.0));
 
-    FireflySolver fireflySolver(schwefelProb, 40);
-    const auto solution = fireflySolver.solve();
-    auto points3d = individuals_to_points(solution, schwefel);
-    azgra::geometry::dump_3d_points_history(points3d, "firefly_schwefel.pts");
+    TLBOSolver tlbo(ackleyProb, 40);
+    auto solution = tlbo.solve();
+
+//    FireflySolver fireflySolver(schwefelProb, 40);
+//    const auto solution = fireflySolver.solve();
+//    auto points3d = individuals_to_points(solution, schwefel);
+//    azgra::geometry::dump_3d_points_history(points3d, "firefly_schwefel.pts");
 //
 ////    SOMASolver soma(schwefelProb, 50, 50);
 ////    auto solution = soma.solve();
