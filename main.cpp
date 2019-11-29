@@ -87,6 +87,8 @@ int main(int argc, char **argv)
 
     TLBOSolver tlbo(ackleyProb, 40);
     auto solution = tlbo.solve();
+    auto points3d = individuals_to_points(solution, ackley_simple);
+    azgra::geometry::dump_3d_points_history(points3d, "tlbo_ackley.pts");
 
 //    FireflySolver fireflySolver(schwefelProb, 40);
 //    const auto solution = fireflySolver.solve();

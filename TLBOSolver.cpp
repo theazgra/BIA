@@ -9,12 +9,17 @@ TLBOSolver::TLBOSolver(const OptimalizationProblem &problem, size_t populationSi
 OptimizationResult TLBOSolver::solve()
 {
     OptimizationResult result = {};
+    result.invidualsInTime.resize(m_iterationCount);
     generate_initial_students();
 
     f64 teacherFactor;
     set_teacher();
     for (size_t it = 0; it < m_iterationCount; ++it)
     {
+        result.invidualsInTime[it] = azgra::collection::select(
+                m_students.begin(), m_students.end(),
+                [](const Student &student)
+                { return student.attributes; });
         const auto studentsMean = get_current_students_mean();
         for (size_t currentStudentIndex = 0; currentStudentIndex < m_populationSize; ++currentStudentIndex)
         {
