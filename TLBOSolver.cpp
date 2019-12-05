@@ -77,8 +77,8 @@ OptimizationResult TLBOSolver::solve()
 
 f64 TLBOSolver::average_fitness() const
 {
-    const f64 sum = azgra::collection::sum_select(m_students.begin(), m_students.end(), [](const Student &student)
-    { return student.fitness; });
+    const f64 sum = azgra::collection::sum(m_students.begin(), m_students.end(), [](const Student &student)
+    { return student.fitness; }, 0.0f);
     const f64 avgFit = sum / static_cast<f64>(m_populationSize);
     return avgFit;
 }

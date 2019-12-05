@@ -73,8 +73,8 @@ void PSOSolver::initialize_population()
 
 f64 PSOSolver::average_fitness() const
 {
-    auto sum = azgra::collection::sum_select(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
-    { return particle.fitness; });
+    auto sum = azgra::collection::sum(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
+    { return particle.fitness; }, 0.0f);
 
     f64 result = sum / static_cast<f64>(m_particleCount);
     return result;
@@ -83,8 +83,8 @@ f64 PSOSolver::average_fitness() const
 
 f64 PSOSolver::average_p_best_fitness() const
 {
-    auto sum = azgra::collection::sum_select(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
-    { return particle.pBestFitness; });
+    auto sum = azgra::collection::sum(m_particles.begin(), m_particles.end(), [](const PSOParticle &particle)
+    { return particle.pBestFitness; }, 0.0f);
 
     f64 result = sum / static_cast<f64>(m_particleCount);
     return result;

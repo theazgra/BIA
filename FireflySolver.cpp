@@ -132,8 +132,8 @@ Firefly const &FireflySolver::get_best_firefly() const
 
 f64 FireflySolver::average_fitness() const
 {
-    const f64 sum = azgra::collection::sum_select(m_fireflies.begin(), m_fireflies.end(), [](const Firefly &f)
-    { return f.fitness; });
+    const f64 sum = azgra::collection::sum(m_fireflies.begin(), m_fireflies.end(), [](const Firefly &f)
+    { return f.fitness; }, 0.0f);
     const f64 avgFit = sum / static_cast<f64>(m_populationSize);
     return avgFit;
 }
