@@ -22,5 +22,5 @@ protected:
 
     std::vector<Individual> generate_random_individuals();
 public:
-    Solver(const OptimalizationProblem &problem, const size_t populationSize);
+    Solver(const OptimizationProblem &problem, const size_t populationSize);
 };

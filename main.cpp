@@ -3,6 +3,7 @@
 #include "FireflySolver.h"
 #include "TLBOSolver.h"
 #include "optimalization_functions.h"
+#include "nsga2_solver.h"
 
 #if 0
 static void draw_cities(const tsp::TspSolution &solution,
@@ -74,36 +75,47 @@ static void print_permutation(const std::vector<int> &permutation)
     fprintf(stdout, "\n");
 }
 
+std::vector<azgra::geometry::Point2D<double>> to_points(const std::vector<std::pair<float,float>> &pts)
+{
+    std::vector<azgra::geometry::Point2D<double>> points(pts.size());
+
+    for (size_t i = 0; i < pts.size(); i++)
+    {
+        points[i] = azgra::geometry::Point2D<double>(pts[i].first, pts[i].second);
+    }
+    return points;
+}
+
 
 int main(int argc, char **argv)
 {
-//    auto cities = tsp::generate_random_cities(100, true, 200);
-//    AntColony antHill(cities, 5, 1.0, 2.0, 0.5, 30);
-//    auto solution = antHill.solve();
-//    draw_cities(solution, cities);
     const size_t dimension = 2;
-    OptimalizationProblem ackleyProb(ackley_simple, 100, dimension, generate_limits(dimension, -32.0, 32.0));
-    OptimalizationProblem schwefelProb(schwefel, 1000, dimension, generate_limits(dimension, -500.0, 500.0));
+    // NSGA2
+    auto limits = generate_limits(dimension, -5.12, 5.12);
+    OptimizationProblem problem_sphere(sphere, 50, dimension, limits);
+    OptimizationProblem problem_rastrigin(rastrigin, 50, dimension, limits);
 
+    NSGA2Solver nsga2({problem_sphere, problem_rastrigin}, 20);
+    const auto solution = nsga2.solve();
+    const auto points = to_points(solution);
+    azgra::geometry::Plot("Pareto").add_2d_points(points).display_window();
+
+    /*
+    // Last session results
+    OptimizationProblem ackleyProb(ackley_simple, 100, dimension, generate_limits(dimension, -32.0, 32.0));
+    OptimizationProblem schwefelProb(schwefel, 1000, dimension, generate_limits(dimension, -500.0, 500.0));
+
+    // Teaching learning base 
     TLBOSolver tlbo(ackleyProb, 40);
     auto solution = tlbo.solve();
     auto points3d = individuals_to_points(solution, ackley_simple);
     azgra::geometry::dump_3d_points_history(points3d, "tlbo_ackley.pts");
 
-//    FireflySolver fireflySolver(schwefelProb, 40);
-//    const auto solution = fireflySolver.solve();
-//    auto points3d = individuals_to_points(solution, schwefel);
-//    azgra::geometry::dump_3d_points_history(points3d, "firefly_schwefel.pts");
-//
-////    SOMASolver soma(schwefelProb, 50, 50);
-////    auto solution = soma.solve();
-////    auto points3d = soma_individuals_to_points(solution,schwefel);
-//
-//    //PSOSolver psoSolver(schwefelProb, 25, 1500);
-//    PSOSolver psoSolver(ackleyProb, 25, 100);
-//    auto solution = psoSolver.solve();
-
-//    fprintf(stdout, "done\n");
-
+    // Fireflies
+    FireflySolver fireflySolver(schwefelProb, 40);
+    const auto solution = fireflySolver.solve();
+    auto points3d = individuals_to_points(solution, schwefel);
+    azgra::geometry::dump_3d_points_history(points3d, "firefly_schwefel.pts");
+    */
     return 0;
 }

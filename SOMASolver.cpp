@@ -1,7 +1,7 @@
 #include "SOMASolver.h"
 
 
-SOMASolver::SOMASolver(const OptimalizationProblem &problem, const size_t populationSize, const size_t migrationCount)
+SOMASolver::SOMASolver(const OptimizationProblem &problem, const size_t populationSize, const size_t migrationCount)
 {
     m_fitnessFunction = problem.testFunction;
     m_dimension = problem.dimensionCount;

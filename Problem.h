@@ -23,16 +23,16 @@ inline std::vector<Limits> generate_limits(const size_t dimension, const f64 min
     return limits;
 }
 
-struct OptimalizationProblem
+struct OptimizationProblem
 {
     std::function<azgra::f64(const std::vector<azgra::f64> &)> testFunction;
     size_t iterationCount{};
     size_t dimensionCount{};
     std::vector<Limits> dimensionLimits;
 
-    OptimalizationProblem() = default;
+    OptimizationProblem() = default;
 
-    OptimalizationProblem(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn,
+    OptimizationProblem(const std::function<azgra::f64(const std::vector<azgra::f64> &)> &fn,
                           const size_t itCount,
                           const size_t dimCount,
                           const std::vector<Limits> &limits)

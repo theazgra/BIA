@@ -1,6 +1,6 @@
 #include "FireflySolver.h"
 
-FireflySolver::FireflySolver(const OptimalizationProblem &problem,
+FireflySolver::FireflySolver(const OptimizationProblem &problem,
                              const size_t populationSize,
                              const f64 beta0,
                              const f64 alpha,

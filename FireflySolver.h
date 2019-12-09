@@ -57,7 +57,7 @@ private:
 
 public:
 
-    explicit FireflySolver(const OptimalizationProblem &problem,
+    explicit FireflySolver(const OptimizationProblem &problem,
                            const size_t populationSize,
                            const f64 beta0 = 1.9,
                            const f64 alpha = 0.3,

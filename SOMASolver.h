@@ -41,7 +41,7 @@ private:
     f64 average_fitness() const;
 
 public:
-    SOMASolver(const OptimalizationProblem &problem,
+    SOMASolver(const OptimizationProblem &problem,
                const size_t populationSize,
                const size_t migrationCount);
 

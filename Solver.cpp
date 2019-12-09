@@ -4,7 +4,7 @@
 
 #include "Solver.h"
 
-Solver::Solver(const OptimalizationProblem &problem, const size_t populationSize)
+Solver::Solver(const OptimizationProblem &problem, const size_t populationSize)
 {
     m_populationSize = populationSize;
     m_dimensionCount = problem.dimensionCount;

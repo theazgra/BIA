@@ -11,7 +11,8 @@ add_executable(bia main.cpp optimalization_functions.cpp
         SOMASolver.cpp PSOSolver.cpp AntColony.cpp
         Solver.cpp
         FireflySolver.cpp
-        TLBOSolver.cpp)
+        TLBOSolver.cpp
+        nsga2_solver.cpp)
 
 target_link_libraries(bia sub::azgra)
 set_property(TARGET bia PROPERTY CXX_STANDARD 17)

@@ -33,12 +33,12 @@ namespace optimalization
     };
 
 
-    struct HillClimbingConfig : OptimalizationProblem
+    struct HillClimbingConfig : OptimizationProblem
     {
         size_t neighborhoodSize;
         azgra::f64 stdDev;
 
-        void set_probem(OptimalizationProblem problem);
+        void set_probem(OptimizationProblem problem);
     };
 
     struct SimulatedAnnealingConfig : HillClimbingConfig
@@ -49,9 +49,9 @@ namespace optimalization
         size_t repetitionOfMetropolisAlg;
     };
 
-    SearchAlgorithmResult blind_search(const OptimalizationProblem &problem);
+    SearchAlgorithmResult blind_search(const OptimizationProblem &problem);
 
-    SearchAlgorithmResult blind_search_with_history(const OptimalizationProblem &problem);
+    SearchAlgorithmResult blind_search_with_history(const OptimizationProblem &problem);
 
     SearchAlgorithmResult hill_climbing_with_history(const HillClimbingConfig &problem);
 

@@ -46,7 +46,7 @@ namespace optimalization
         return randomSolution;
     }
 
-    SearchAlgorithmResult blind_search(const OptimalizationProblem &problem)
+    SearchAlgorithmResult blind_search(const OptimizationProblem &problem)
     {
         SearchAlgorithmResult result = {};
         result.bestSolutionValue = std::numeric_limits<f64>::max();
@@ -75,7 +75,7 @@ namespace optimalization
     }
 
     SearchAlgorithmResult
-    blind_search_with_history(const OptimalizationProblem &problem)
+    blind_search_with_history(const OptimizationProblem &problem)
     {
         SearchAlgorithmResult result = {};
         result.bestSolutionValue = std::numeric_limits<f64>::max();
@@ -245,7 +245,7 @@ namespace optimalization
 
 
 
-    void HillClimbingConfig::set_probem(OptimalizationProblem problem)
+    void HillClimbingConfig::set_probem(OptimizationProblem problem)
     {
         testFunction = problem.testFunction;
         iterationCount = problem.iterationCount;

@@ -20,7 +20,7 @@ private:
     f64 average_fitness() const;
 
 public:
-    TLBOSolver(const OptimalizationProblem &problem, size_t populationSize);
+    TLBOSolver(const OptimizationProblem &problem, size_t populationSize);
 
     OptimizationResult solve();
 };

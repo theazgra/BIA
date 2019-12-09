@@ -1,7 +1,7 @@
 #include "TLBOSolver.h"
 
 
-TLBOSolver::TLBOSolver(const OptimalizationProblem &problem, size_t populationSize) : Solver(problem, populationSize)
+TLBOSolver::TLBOSolver(const OptimizationProblem &problem, size_t populationSize) : Solver(problem, populationSize)
 {
     m_randomStudent = std::uniform_int_distribution<size_t>(0, m_populationSize - 1);
 }
