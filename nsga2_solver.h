@@ -1,5 +1,6 @@
 #pragma once
-
+#include <sstream>
+#include <iomanip>
 #include "Solver.h"
 using namespace azgra;
 
@@ -56,8 +57,9 @@ private:
     std::vector<NSGA2Individual> create_offsprings(bool useCrowdedComparsionOp);
     bool dominates(const NSGA2Individual &p, const NSGA2Individual &q) const;
     void crowded_sort(std::vector<NSGA2Individual> &individuals);
+    void report_current_fitness() const;
 
 public:
     explicit NSGA2Solver(const std::vector<OptimizationProblem> &problems, size_t populationSize);
-    std::vector<std::pair<float,float>> solve();
+    OptimizationResult solve();
 };

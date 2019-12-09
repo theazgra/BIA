@@ -18,7 +18,8 @@ void NSGA2Solver::initialize_population()
 {
     using namespace azgra::collection;
     const auto individuals = generate_random_individuals();
-    m_population = select(individuals.begin(), individuals.end(), [this](const Individual &individual) {
+    m_population = select(individuals.begin(), individuals.end(), [this](const Individual &individual)
+    {
         std::vector<f64> evaluations(this->m_objectiveCount);
         for (size_t i = 0; i < this->m_objectiveCount; i++)
         {
@@ -110,14 +111,14 @@ size_t NSGA2Solver::tournament_selection(const size_t parentA, bool useCrowdedCo
     for (size_t i = 0; i < k; i++)
     {
         size_t randomIndex = m_randomIndividual(m_mt);
-        while(randomIndex == parentA)
+        while (randomIndex == parentA)
         {
             randomIndex = m_randomIndividual(m_mt);
         }
 
         const NSGA2Individual &rndParent = m_population[randomIndex];
 
-        if ((rndParent.rank < bestRank) || ((rndParent.rank == bestRank) && ( rndParent.distance > bestDist)))
+        if ((rndParent.rank < bestRank) || ((rndParent.rank == bestRank) && (rndParent.distance > bestDist)))
         {
             bestRank = rndParent.rank;
             bestDist = rndParent.distance;
@@ -187,13 +188,20 @@ std::vector<NSGA2Individual> NSGA2Solver::create_offsprings(bool useCrowdedCompa
     return offsprings;
 }
 
-std::vector<std::pair<float,float>> NSGA2Solver::solve()
+OptimizationResult NSGA2Solver::solve()
 {
-    
+    OptimizationResult result = {};
+    result.invidualsInTime.resize(m_iterationCount + 1);
     initialize_population();
 
     for (size_t it = 0; it < m_iterationCount; it++)
     {
+        report_current_fitness();
+        result.invidualsInTime[it] = azgra::collection::select(m_population.begin(), m_population.end(),
+                                                               [](const NSGA2Individual &indiv)
+                                                               { return indiv.evaluations; });
+
+
         const auto offsprings = create_offsprings(it != 0);
 
         // Create combined population
@@ -241,12 +249,11 @@ std::vector<std::pair<float,float>> NSGA2Solver::solve()
 
         m_population = nextPopulation;
     }
-    std::vector<std::pair<float,float>> result(m_populationSize);
-    size_t i = 0;
-    for (const auto &individual : m_population)
-    {
-        result[i++] = std::make_pair(individual.evaluations[0],individual.evaluations[1]);
-    }
+    report_current_fitness();
+
+    result.invidualsInTime[m_iterationCount] = azgra::collection::select(m_population.begin(), m_population.end(),
+                                                                         [](const NSGA2Individual &indiv)
+                                                                         { return indiv.evaluations; });
     return result;
 }
 
@@ -284,10 +291,31 @@ void NSGA2Solver::crowded_sort(std::vector<NSGA2Individual> &individuals)
 
         for (size_t i = 1; i < (size - 1); i++)
         {
-            individuals[i].distance += (individuals[i + 1].evaluations[objIndex] - individuals[i - 1].evaluations[objIndex]) / (objMax - objMin);
+            individuals[i].distance +=
+                    (individuals[i + 1].evaluations[objIndex] - individuals[i - 1].evaluations[objIndex]) / (objMax - objMin);
         }
     }
 
     // Descending distance
     std::sort(individuals.begin(), individuals.end(), std::greater<>());
+}
+
+void NSGA2Solver::report_current_fitness() const
+{
+    std::vector<float> avgObjectiveValues(m_objectiveCount, 0.0f);
+    for (const auto &individual : m_population)
+    {
+        for (int objIndex = 0; objIndex < m_objectiveCount; ++objIndex)
+        {
+            avgObjectiveValues[objIndex] += individual.evaluations[objIndex];
+        }
+    }
+    std::stringstream ss;
+    for (int objIndex = 0; objIndex < m_objectiveCount; ++objIndex)
+    {
+        avgObjectiveValues[objIndex] /= static_cast<float>(m_populationSize);
+        ss << std::setprecision(4) << std::fixed << "Objective [" << objIndex << "] average value: " << avgObjectiveValues[objIndex] <<
+           "|";
+    }
+    fprintf(stdout, "%s\n", ss.str().c_str());
 }
